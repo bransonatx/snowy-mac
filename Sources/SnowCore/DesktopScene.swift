@@ -31,7 +31,7 @@ public enum DesktopSceneBuilder {
         let candidates = windows.prefix(512).filter { record in
             guard valid(record.bounds), record.bounds.intersects(display) else { return false }
             switch record.role {
-            case .application:
+            case .application, .iphoneMirroring:
                 // Window alpha describes the fade level, so a presentation overlay can
                 // report alpha 1. Exclude only substantially oversized floating windows
                 // beyond both vertical edges of the display layout. A window spanning
@@ -68,6 +68,18 @@ public enum DesktopSceneBuilder {
                 // doesn't expose a separate content frame or an arbitrary alpha silhouette.
                 result.bounds = CGRect(x: record.bounds.minX + 8, y: record.bounds.minY + 16,
                                        width: record.bounds.width - 16, height: record.bounds.height - 24)
+            } else if record.role == .iphoneMirroring {
+                // iPhone Mirroring (ScreenContinuity) includes a 40 pt top titlebar/chrome area
+                // and 18 pt leading/trailing margins that are transparent except on hover.
+                // Insetting to the visible phone body lets snow land directly on the phone.
+                let topInset: CGFloat = 40
+                let sideInset: CGFloat = 18
+                if record.bounds.width > sideInset * 2 + 48, record.bounds.height > topInset + 48 {
+                    result.bounds = CGRect(x: record.bounds.minX + sideInset,
+                                           y: record.bounds.minY + topInset,
+                                           width: record.bounds.width - sideInset * 2,
+                                           height: record.bounds.height - topInset)
+                }
             }
             return result
         }
@@ -146,7 +158,7 @@ public enum DesktopSceneBuilder {
         for record in candidates where record.role == .widget {
             if selected.count < maximumBodies, ids.insert(record.id).inserted { selected.append(record) }
         }
-        for record in candidates where record.role == .application {
+        for record in candidates where record.role == .application || record.role == .iphoneMirroring {
             if selected.count < maximumBodies, ids.insert(record.id).inserted { selected.append(record) }
         }
         let tilts = Dictionary(uniqueKeysWithValues: selected.filter { thumbnails.contains($0.id) }.map {
@@ -195,7 +207,7 @@ public enum DesktopSceneBuilder {
                 }
                 guard other.bounds.minY < record.bounds.minY - 0.01 else { continue }
                 let inset: CGFloat
-                if record.role == .application {
+                if record.role == .application || record.role == .iphoneMirroring {
                     // macOS composites the snow panel under native windows. Omit only columns
                     // covered across the whole pile, leaving rounded corners to the compositor.
                     guard other.bounds.minY <= snowTop, other.bounds.maxY >= snowBottom else { continue }
@@ -225,7 +237,7 @@ slope: tilts[record.id]?.top ?? 0))
     public static func stripThumbnailIDs(in windows: [DesktopWindowRecord]) -> Set<UInt64> {
         let shields = windows.prefix(512).filter { $0.role == .other && $0.layer >= 0 && $0.layer < 20 }.map(\.bounds)
         return Set(windows.prefix(512).filter { record in
-            record.role == .application && shields.contains {
+            (record.role == .application || record.role == .iphoneMirroring) && shields.contains {
                 abs($0.minX - record.bounds.minX) < 2 && abs($0.minY - record.bounds.minY) < 2
                     && abs($0.width - record.bounds.width) < 2 && abs($0.height - record.bounds.height) < 2
             }
@@ -274,6 +286,7 @@ slope: tilts[record.id]?.top ?? 0))
         case .spotlight: radius = 28
         case .widget: radius = 22
         case .dock: radius = appearance == .modern ? min(16, Float(record.bounds.height) / 3) : 12
+        case .iphoneMirroring: radius = 54
         case .application: radius = appearance == .modern && record.layer == 0 ? 26 : 12
         case .desktop, .other: radius = 0
         }

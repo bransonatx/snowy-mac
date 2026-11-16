@@ -133,10 +133,8 @@ final class DesktopHangingLights {
 struct HangingRope {
     private let model: LightString
     private let jointNodes: [Int]
-    private let jointLengths: [CGFloat]
-    private let linkLengths: [CGFloat]
-    private var held: [Bool]
-    private var wasFollowing: [Bool]
+    private var jointLengths: [CGFloat]
+    private var linkLengths: [CGFloat]
     private var joints: [CGPoint]
     private var pins: [CGPoint?]
     private(set) var positions: [CGPoint]
@@ -148,8 +146,6 @@ struct HangingRope {
         self.model = model
         let joints = model.anchors.map { $0.position(in: desktop) }
         self.joints = joints
-        held = joints.map { _ in true }
-        wasFollowing = model.anchors.map { $0.followsObject && $0.attachedPosition(in: desktop) != nil }
 
         var points: [CGPoint] = []
         var cumulative: [CGFloat] = [0]
@@ -173,52 +169,39 @@ struct HangingRope {
         for (node, point) in zip(nodes, joints) where pins.indices.contains(node) { pins[node] = point }
     }
 
-    /// Sample a new desktop geometry. If a fixed span is stretched past its
-    /// length, release the object anchor that moved furthest during the sample.
+    /// Sample a new desktop geometry. Anchor joints track their attached
+    /// objects or fallback positions smoothly.
     mutating func update(in desktop: SceneDesktop) -> Bool {
         guard jointNodes.count == joints.count, joints.count >= 2 else { return false }
         var next = joints
         var travel = joints.map { _ in CGFloat(0) }
         var changed = false
-        for index in joints.indices where held[index] {
+        for index in joints.indices {
             let anchor = model.anchors[index]
-            let attachment = anchor.attachedPosition(in: desktop)
-            if anchor.followsObject, attachment == nil, wasFollowing[index] {
-                held[index] = false
-                changed = true
-                continue
-            }
-            if attachment != nil && anchor.followsObject { wasFollowing[index] = true }
-            next[index] = attachment ?? anchor.position(in: desktop)
+            let targetPosition = anchor.attachedPosition(in: desktop) ?? anchor.position(in: desktop)
+            next[index] = targetPosition
             travel[index] = hypot(next[index].x - joints[index].x, next[index].y - joints[index].y)
             changed = changed || travel[index] > 0.25
-        }
-
-        var preceding: Int?
-        for index in joints.indices where held[index] {
-            if let start = preceding {
-                let distance = hypot(next[index].x - next[start].x, next[index].y - next[start].y)
-                let reach = jointLengths[index] - jointLengths[start]
-                if distance > reach * 1.22 + 9 {
-                    let movable = [start, index].filter { model.anchors[$0].followsObject && travel[$0] > 0.25 }
-                    if let detached = movable.max(by: { travel[$0] < travel[$1] }) {
-                        held[detached] = false
-                        changed = true
-                        if detached == index { continue }
-                    }
-                }
-            }
-            preceding = index
         }
         guard changed else { return false }
 
         for index in joints.indices {
             let node = jointNodes[index]
-            if held[index] {
-                joints[index] = next[index]
-                pins[node] = next[index]
-            } else {
-                pins[node] = nil
+            joints[index] = next[index]
+            pins[node] = next[index]
+        }
+        for i in 0..<(joints.count - 1) {
+            let startNode = jointNodes[i]
+            let endNode = jointNodes[i + 1]
+            let linkCount = endNode - startNode
+            guard linkCount > 0 else { continue }
+            let spanDistance = hypot(next[i + 1].x - next[i].x, next[i + 1].y - next[i].y)
+            let desiredLength = max(spanDistance * CGFloat(1 + model.usableSlack * 0.8), spanDistance + 4)
+            let perLink = desiredLength / CGFloat(linkCount)
+            for linkIndex in startNode..<endNode {
+                if linkLengths.indices.contains(linkIndex) {
+                    linkLengths[linkIndex] = perLink
+                }
             }
         }
         stepsRemaining = 120

@@ -373,8 +373,8 @@ struct SceneEditor: View {
         let description: String
         switch anchor.attachment {
         case .desktop: description = "Desktop edge"
-        case .object(let id, _, _):
-            description = desktop.anchors.first(where: { $0.id == id }).map { "\($0.kind.title) edge" }
+        case .object:
+            description = anchor.target(in: desktop).map { "\($0.kind.title) edge" }
                 ?? "Anchor unavailable"
         case nil: description = "Free point"
         }

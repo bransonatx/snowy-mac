@@ -183,7 +183,7 @@ final class WindowTracker {
             } else {
                 let previous = Dictionary(self.cachedRecords.map { ($0.id, $0.bounds) }, uniquingKeysWith: { first, _ in first })
                 let changed = records.first {
-                    ($0.role == .application || $0.role == .widget) && previous[$0.id] != nil && previous[$0.id] != $0.bounds
+                    ($0.role == .application || $0.role == .iphoneMirroring || $0.role == .widget) && previous[$0.id] != nil && previous[$0.id] != $0.bounds
                 }
                 self.cachedRecords = records
                 self.trackedWindow = dragging ? (self.windowUnderDragPointer() ?? changed.map { UInt32($0.id) }) : nil
@@ -196,7 +196,7 @@ final class WindowTracker {
     private func deliverSnapshots(displays: [DisplayGeometry], completion: ([DisplaySnapshot]?) -> Void) {
         let thumbnails = DesktopSceneBuilder.stripThumbnailIDs(in: cachedRecords)
         var widths: [UInt64: CGFloat] = [:]
-        for record in cachedRecords where record.role == .application {
+        for record in cachedRecords where record.role == .application || record.role == .iphoneMirroring {
             widths[record.id] = thumbnails.contains(record.id) ? originalWidths[record.id] : record.bounds.width
         }
         originalWidths = widths
@@ -238,7 +238,7 @@ final class WindowTracker {
         let pointer = NSEvent.mouseLocation
         let point = CGPoint(x: pointer.x, y: (NSScreen.screens.first?.frame.maxY ?? 0) - pointer.y)
         return cachedRecords.first { record in
-            guard record.role == .application || record.role == .widget,
+            guard record.role == .application || record.role == .iphoneMirroring || record.role == .widget,
                   record.bounds.insetBy(dx: -12, dy: -12).contains(point) else { return false }
             if record.role == .widget { return true }
             let frame = record.bounds

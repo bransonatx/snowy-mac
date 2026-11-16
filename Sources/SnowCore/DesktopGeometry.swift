@@ -42,7 +42,7 @@ public struct SolidBody: Equatable, Sendable {
     }
 }
 
-public enum DesktopWindowRole: Sendable { case application, widget, dock, spotlight, desktop, other }
+public enum DesktopWindowRole: Sendable { case application, widget, dock, spotlight, desktop, iphoneMirroring, other }
 
 /// Geometry estimates for the standard window and Dock styles available on macOS.
 public enum DesktopAppearance: Sendable {

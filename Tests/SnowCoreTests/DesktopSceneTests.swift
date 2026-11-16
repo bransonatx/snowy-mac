@@ -417,4 +417,52 @@ final class DesktopSceneTests: XCTestCase {
         XCTAssertEqual(Set(scene.bodies.map(\.id)).count, scene.bodies.count)
         XCTAssertEqual(scene.surfaces.first?.id, UInt64.max)
     }
+
+    func testIPhoneMirroringProcessRoleAndSystemRoleDecodesCorrectly() {
+        XCTAssertEqual(DesktopWindowDecoder.processRole(bundleIdentifier: "com.apple.ScreenContinuity"), .iphoneMirroring)
+        XCTAssertEqual(DesktopWindowDecoder.processRole(bundleIdentifier: "COM.APPLE.SCREENCONTINUITY"), .iphoneMirroring)
+
+        let dictionary: [String: Any] = [
+            kCGWindowOwnerPID as String: NSNumber(value: Int64(456)),
+            kCGWindowOwnerName as String: "iPhone Mirroring",
+            kCGWindowNumber as String: NSNumber(value: UInt64(99)),
+            kCGWindowLayer as String: NSNumber(value: Int32(0)),
+            kCGWindowAlpha as String: NSNumber(value: 1),
+            kCGWindowBounds as String: ["X": 200, "Y": 100, "Width": 336, "Height": 712]
+        ]
+        let records = DesktopWindowDecoder.decode(metadata: [dictionary], processRoles: [:], excludingPID: 999)
+        XCTAssertEqual(records.count, 1)
+        XCTAssertEqual(records.first?.role, .iphoneMirroring)
+    }
+
+    func testIPhoneMirroringInsetsWindowBoundsAndSetsPhoneCornerRadius() {
+        let phoneWindow = window(99, CGRect(x: 200, y: 20, width: 336, height: 712), role: .iphoneMirroring)
+        let scene = DesktopSceneBuilder.build(displayBounds: display, menuInset: 24, windows: [phoneWindow])
+
+        let surface = scene.surfaces.first { $0.id == 99 }
+        XCTAssertNotNil(surface)
+        // Inset by top: 40, sides: 18 -> origin: (218, 60), width: 300, cornerRadius: 54
+        XCTAssertEqual(surface?.x, 218)
+        XCTAssertEqual(surface?.y, 60)
+        XCTAssertEqual(surface?.width, 300)
+        XCTAssertEqual(surface?.cornerRadius, 54)
+
+        let body = scene.bodies.first { $0.id == 99 }
+        XCTAssertNotNil(body)
+        XCTAssertEqual(body?.bounds, CGRect(x: 218, y: 60, width: 300, height: 672))
+        XCTAssertEqual(body?.cornerRadius, 54)
+
+        let simulation = SnowSimulation(size: SIMD2(1000, 800), budget: SimulationBudget(flakes: 0))
+        simulation.updateBodies(scene.bodies)
+        simulation.updateSurfaces(scene.surfaces)
+        simulation.drifts.first { $0.surface.id == 99 }!.accumulate(dt: 10, intensity: 1)
+        simulation.rebuildMesh()
+        // Visible snow should accumulate above y = 60 (the phone body top), NOT at y = 20 (transparent hover chrome)
+        XCTAssertTrue(simulation.mesh.contains {
+            $0.position.x >= 218 && $0.position.x <= 518 && $0.position.y > 40 && $0.position.y < 60
+        }, "Snow must accumulate directly on the iPhone body at y = 60")
+        XCTAssertFalse(simulation.mesh.contains {
+            $0.position.y >= 0 && $0.position.y < 25
+        }, "Snow must not float in thin air at the top of the transparent hover chrome (y = 20)")
+    }
 }

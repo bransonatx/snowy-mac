@@ -96,16 +96,40 @@ struct LightAnchor: Codable, Equatable, Sendable {
                        y: Edge.unit(fallback.y) * desktop.size.height)
     }
 
+    func target(in desktop: SceneDesktop) -> SceneAnchorTarget? {
+        guard case .object(let id, _, _) = attachment else { return nil }
+        if let object = desktop.anchors.first(where: { $0.id == id }) { return object }
+        if id.hasPrefix("widget:") {
+            let fallbackPoint = CGPoint(x: Edge.unit(fallback.x) * desktop.size.width,
+                                        y: Edge.unit(fallback.y) * desktop.size.height)
+            let widgetCandidates = desktop.anchors.filter { $0.kind == .widget }
+            if let closest = widgetCandidates.min(by: {
+                Self.distance(from: fallbackPoint, to: $0.bounds) < Self.distance(from: fallbackPoint, to: $1.bounds)
+            }) {
+                if Self.distance(from: fallbackPoint, to: closest.bounds) <= 120 {
+                    return closest
+                }
+            }
+        }
+        return nil
+    }
+
     func attachedPosition(in desktop: SceneDesktop) -> CGPoint? {
         switch attachment {
         case .desktop(let edge, let fraction):
             return edge.position(fraction: Edge.unit(fraction), in: CGRect(origin: .zero, size: desktop.size))
-        case .object(let id, let edge, let fraction):
-            guard let object = desktop.anchors.first(where: { $0.id == id }) else { return nil }
+        case .object(_, let edge, let fraction):
+            guard let object = target(in: desktop) else { return nil }
             return edge.position(fraction: Edge.unit(fraction), in: object.bounds)
         case nil:
             return nil
         }
+    }
+
+    private static func distance(from point: CGPoint, to rect: CGRect) -> CGFloat {
+        let dx = max(rect.minX - point.x, 0, point.x - rect.maxX)
+        let dy = max(rect.minY - point.y, 0, point.y - rect.maxY)
+        return hypot(dx, dy)
     }
 
     var followsObject: Bool {

@@ -12,6 +12,7 @@ public enum DesktopWindowDecoder {
         }
         if bundle == "com.apple.spotlight" { return .spotlight }
         if bundle == "com.apple.dock" { return .dock }
+        if bundle == "com.apple.screencontinuity" { return .iphoneMirroring }
         if bundle == "com.apple.notificationcenterui" || bundle.contains("widgetkit")
             || bundle == "com.apple.widgetextensionhost" { return .widget }
         if bundle == "com.apple.finder" || bundle.contains("wallpaper") { return .desktop }
@@ -25,6 +26,7 @@ public enum DesktopWindowDecoder {
         case "Spotlight": return .spotlight
         case "WindowManager": return .other
         case "Dock": return .dock
+        case "iPhone Mirroring": return .iphoneMirroring
         default: return nil
         }
     }
@@ -68,6 +70,8 @@ public enum DesktopWindowDecoder {
                 role = .dock
             } else if processRole == .widget {
                 role = .widget
+            } else if processRole == .iphoneMirroring {
+                role = .iphoneMirroring
             } else if layer < 0 {
                 // Other compact desktop-level windows can be third-party widgets. The scene
                 // builder rejects screen-sized hosts. Finder/wallpaper desktop containers are explicit.
