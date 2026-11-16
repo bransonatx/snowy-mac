@@ -145,6 +145,17 @@ public enum ReleaseNotesParser {
 extension ReleaseNote {
     public static let bundledReleases: [ReleaseNote] = [
         ReleaseNote(
+            id: "v0.11.2",
+            version: "0.11.2",
+            title: "Snowy v0.11.2",
+            publishedAt: ISO8601DateFormatter().date(from: "2026-11-16T23:00:00Z"),
+            highlights: [
+                "iPhone Mirroring alignment: Snow now accumulates directly on the curved top bezel and rounded corners of the iPhone Mirroring window rather than floating above it.",
+                "Stable widget light anchors: Christmas lights pinned to desktop widgets no longer detach or drop when widgets refresh their background views or on system restart."
+            ],
+            htmlURL: URL(string: "https://github.com/soloiaros/snowy-mac/releases/tag/v0.11.2")
+        ),
+        ReleaseNote(
             id: "v0.11.1",
             version: "0.11.1",
             title: "Snowy v0.11.1",

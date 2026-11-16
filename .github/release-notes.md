@@ -1,11 +1,17 @@
 Snowy brings interactive snow to window edges, desktop widgets, Spotlight, and a bottom-positioned Dock.
 
-- **Critical Fix**: Fixes a regression in v0.11.0 where snow and decorations failed to display due to an erroneous fullscreen detection on the Dock background window.
-- **Immediate Update Notifications**: Snowy now automatically checks for updates whenever you open the status menu or settings window, as well as on wake from sleep, so new version alerts appear without having to restart the app.
+- **iPhone Mirroring Alignment**: Snow now naturally settles along the curved top bezel and rounded corners of the iPhone Mirroring window, rather than floating 40 pt in mid-air above the window chrome.
+- **Stable Widget Light Anchors**: Christmas lights pinned to desktop widgets now reliably stay attached across widget content updates, background view refreshes, and system restarts.
+- **Immediate Update Notifications**: Snowy automatically checks for updates whenever you open the status menu or settings window, as well as on wake from sleep, so update notifications appear without restarting the app.
 - **In-App Release Notes & Quick Update**: Access release highlights and install updates with one click directly from the Snowy window sidebar.
-- **Stage Manager Support**: Snow now naturally accumulates on and slides along the 3D perspective-tilted strip thumbnails.
+- **Stage Manager Support**: Snow naturally accumulates on and slides along the 3D perspective-tilted strip thumbnails.
 - **Universal Resolution Scaling**: Perspective projection automatically scales with display height across all MacBook screens and external displays.
-- **Aligned Window & Dock Contours**: Snow contours trace window corners and the Dock smoothly without clipping.
+
+### iPhone Mirroring Snow Alignment
+
+| Before (v0.11.1) | After (v0.11.2) |
+| :---: | :---: |
+| <img src="https://raw.githubusercontent.com/soloiaros/snowy-mac/main/.github/assets/iphone-mirroring-before.jpg" width="340" alt="Before: snow floating above iPhone Mirroring window" /> | <img src="https://raw.githubusercontent.com/soloiaros/snowy-mac/main/.github/assets/iphone-mirroring-after.jpg" width="340" alt="After: snow resting on iPhone Mirroring top bezel" /> |
 
 Open the DMG and drag **Snowy.app** onto **Applications**. If you have an earlier copy, you can update directly via the in-app Update button in Snowy or the snowflake menu item.
 
