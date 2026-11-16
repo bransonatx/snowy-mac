@@ -1,7 +1,9 @@
 Snowy brings interactive snow to window edges, desktop widgets, Spotlight, and a bottom-positioned Dock.
 
-- **iPhone Mirroring Alignment**: Snow now naturally settles along the curved top bezel and rounded corners of the iPhone Mirroring window, rather than floating 40 pt in mid-air above the window chrome.
-- **Stable Widget Light Anchors**: Christmas lights pinned to desktop widgets now reliably stay attached across widget content updates, background view refreshes, and system restarts.
+- **Window Tiling & System Arrangement Support**: Snow caps now remain smoothly attached to their windows during macOS Sequoia tiling shortcuts, Stage Manager arrangements, and minimize genie animations, rather than scraping off or detaching into loose snow.
+- **Instant Window Close Detection**: Snowy now detects closed and hidden windows almost instantaneously (~150 ms idle cadence + immediate app lifecycle notifications), eliminating lingering snow caps after windows close.
+- **iPhone Mirroring Alignment**: Snow naturally settles along the curved top bezel and rounded corners of the iPhone Mirroring window, rather than floating 40 pt in mid-air above the window chrome.
+- **Stable Widget Light Anchors**: Christmas lights pinned to desktop widgets reliably stay attached across widget content updates, background view refreshes, and system restarts.
 - **Immediate Update Notifications**: Snowy automatically checks for updates whenever you open the status menu or settings window, as well as on wake from sleep, so update notifications appear without restarting the app.
 - **In-App Release Notes & Quick Update**: Access release highlights and install updates with one click directly from the Snowy window sidebar.
 - **Stage Manager Support**: Snow naturally accumulates on and slides along the 3D perspective-tilted strip thumbnails.
@@ -9,7 +11,7 @@ Snowy brings interactive snow to window edges, desktop widgets, Spotlight, and a
 
 ### iPhone Mirroring Snow Alignment
 
-| Before (v0.11.1) | After (v0.11.2) |
+| Before (v0.11.1) | After (v0.11.2+) |
 | :---: | :---: |
 | <img src="https://raw.githubusercontent.com/soloiaros/snowy-mac/main/.github/assets/iphone-mirroring-before.jpg" width="340" alt="Before: snow floating above iPhone Mirroring window" /> | <img src="https://raw.githubusercontent.com/soloiaros/snowy-mac/main/.github/assets/iphone-mirroring-after.jpg" width="340" alt="After: snow resting on iPhone Mirroring top bezel" /> |
 

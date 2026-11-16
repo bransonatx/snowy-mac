@@ -145,6 +145,17 @@ public enum ReleaseNotesParser {
 extension ReleaseNote {
     public static let bundledReleases: [ReleaseNote] = [
         ReleaseNote(
+            id: "v0.11.3",
+            version: "0.11.3",
+            title: "Snowy v0.11.3",
+            publishedAt: ISO8601DateFormatter().date(from: "2026-11-16T23:30:00Z"),
+            highlights: [
+                "Window arrangement support: Snow caps now remain attached during macOS Sequoia tiling, Stage Manager moves, and minimize animations instead of scraping off.",
+                "Instant window close detection: Closed and hidden windows are detected in real-time without snow caps lingering in mid-air."
+            ],
+            htmlURL: URL(string: "https://github.com/soloiaros/snowy-mac/releases/tag/v0.11.3")
+        ),
+        ReleaseNote(
             id: "v0.11.2",
             version: "0.11.2",
             title: "Snowy v0.11.2",
