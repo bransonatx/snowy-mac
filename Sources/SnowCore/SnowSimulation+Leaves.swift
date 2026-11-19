@@ -272,18 +272,14 @@ extension SnowSimulation {
                 $0 + ($1.x / (LeafPile.step * scale) + 1) * max(1, $1.y / (LeafPile.rise * scale))
             }
         }
-        let room = Float(limit) * 0.85
-        var scale: Float = 1
-        if needed(1) > room {
-            var fits: Float = 2
-            while needed(fits) > room, fits < 64 { fits *= 2 }
-            var tooFine = fits / 2
-            for _ in 0..<8 {
-                let middle = (tooFine + fits) / 2
-                if needed(middle) > room { tooFine = middle } else { fits = middle }
-            }
-            scale = fits
-        }
+        // The grid coarsens in fixed steps and holds each one until the piles clearly outgrow it
+        // or fall well short of it. A scale that tracked the piles exactly moved every resting
+        // leaf on every rebuild, which showed as flicker once the budget was reached.
+        func gridScale(_ level: Int) -> Float { powf(1.25, Float(level)) }
+        let most = Float(limit)
+        while pileLeafLevel < 20, needed(gridScale(pileLeafLevel)) > most * 0.9 { pileLeafLevel += 1 }
+        while pileLeafLevel > 0, needed(gridScale(pileLeafLevel - 1)) < most * 0.6 { pileLeafLevel -= 1 }
+        let scale = gridScale(pileLeafLevel)
         for elevated in [true, false] {
             for drift in drifts where drift.surface.isElevated == elevated {
                 appendPileLeaves(for: drift, scale: scale, limit: limit)

@@ -41,10 +41,13 @@ Seasons adds a second season to Snowy's winter. From the September equinox to th
 - **Cursor Tool → Leaf Blower** works from a distance: sweep the pointer past a pile and it lifts off along your pass. A faster pass lifts more.
 - Every so often a gust carries a few settled leaves away.
 - Colour follows the date, from yellow-green in September to red and brown by December.
+- **Open Seasons…** leads with the season on the desktop. In fall that is the autumn wallpapers (Golden Hour, Harvest Moon) and the autumn decoration layouts (Pumpkin Patch, Maple Grove, Cider Stand, Woodland Cabin); the winter ones stay available underneath. String lights also come in a Harvest palette.
 
 Winter is unchanged. Switching season clears what has settled. In-app updates are turned off in Seasons so it does not replace itself with Snowy's releases.
 
 ### Seasons installer and website
+
+`swift run Snowy --art out.png` draws every decoration piece and starter wallpaper on one sheet, for checking new artwork without opening the app.
 
 `./scripts/package-release.sh` packages `build/Seasons.app` into `build/releases/Seasons-macOS-arm64.dmg`. The build is signed locally and not notarized, so a Mac that downloads it asks for **System Settings → Privacy & Security → Open Anyway** on first launch.
 

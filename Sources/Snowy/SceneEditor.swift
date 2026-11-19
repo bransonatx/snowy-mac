@@ -205,7 +205,7 @@ struct SceneEditor: View {
                         StringLightsCardArt().frame(width: 64, height: 40)
                     }
                     .disabled(scene.wrappedValue.lights.count >= DecorationScene.maxLights)
-                    ForEach(DecorationCatalog.all) { piece in
+                    ForEach(DecorationCatalog.all(for: .active)) { piece in
                         libraryCard(piece.name, id: piece.id) {
                             let x = min(0.82, 0.22 + Double(scene.wrappedValue.props.count) * 0.055)
                             let prop = PlacedDecoration(assetID: piece.id, x: x, pushes: piece.movesByDefault)

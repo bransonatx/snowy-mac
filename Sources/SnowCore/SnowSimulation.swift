@@ -76,6 +76,9 @@ public final class SnowSimulation {
     var pointerVelocity = SIMD2<Float>.zero
     var blowCarry: Float = 0
     var pileScratch: [SIMD2<Float>] = []
+    /// How far the resting-leaf grid is coarsened, in steps of 1.25x. It only moves when the
+    /// piles clearly outgrow or undershoot the budget, so leaves keep their places in between.
+    var pileLeafLevel = 0
     var looseCarry: Float = 0
     var gustClock: Float = 14
     var gustRemaining: Float = 0

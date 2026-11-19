@@ -135,6 +135,28 @@ final class FallLeavesTests: XCTestCase {
         }
     }
 
+    func testRestingLeavesStayPutWhileAnOverfullDesktopKeepsFilling() {
+        let simulation = SnowSimulation(size: SIMD2(3000, 800),
+                                        budget: SimulationBudget(flakes: 0, cells: 256), seed: 1)
+        simulation.season = .fall
+        simulation.updateSurfaces((0..<6).map { Surface(id: UInt64($0 + 1), x: 0, y: Float(100 + $0 * 100), width: 3000) })
+        func settled(at height: Float) -> Set<SIMD2<Float>> {
+            for drift in simulation.drifts { for i in drift.heights.indices { drift.heights[i] = height } }
+            simulation.rebuildMesh()
+            XCTAssertLessThanOrEqual(simulation.pileLeaves.count, simulation.budget.pileLeaves)
+            return Set(simulation.pileLeaves.filter { $0.opacity >= 1 }.map(\.position))
+        }
+        // Far more leaves than the budget holds, so the grid is coarsened throughout.
+        var before = settled(at: 18)
+        XCTAssertGreaterThan(simulation.pileLeafLevel, 0)
+        for height in stride(from: Float(18.2), through: 19.4, by: 0.2) {
+            let after = settled(at: height)
+            // A little more height may add leaves, but must not shuffle the ones already down.
+            XCTAssertGreaterThan(Float(before.intersection(after).count), Float(before.count) * 0.97)
+            before = after
+        }
+    }
+
     func testBlowerLiftsLeavesOnlyWhileThePointerMoves() {
         let still = simulation(flakes: 0)
         pile(on: still)

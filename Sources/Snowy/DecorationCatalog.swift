@@ -1,8 +1,19 @@
 import CoreGraphics
 import Foundation
+import SnowCore
 
 enum DecorationLayout: String, CaseIterable, Identifiable {
+    // New layouts go at the end: saved scenes derive prop IDs from a layout's position here.
     case none, christmasTree, newYork, alpineVillage, winterMarket
+    case pumpkinPatch, mapleGrove, ciderStand, woodlandCabin
+
+    /// The season a layout is drawn for. Every layout stays available all year.
+    var season: Season {
+        switch self {
+        case .none, .christmasTree, .newYork, .alpineVillage, .winterMarket: .winter
+        case .pumpkinPatch, .mapleGrove, .ciderStand, .woodlandCabin: .fall
+        }
+    }
 
     var id: String { rawValue }
 
@@ -13,6 +24,10 @@ enum DecorationLayout: String, CaseIterable, Identifiable {
         case .newYork: "New York"
         case .alpineVillage: "Alpine Village"
         case .winterMarket: "Winter Market"
+        case .pumpkinPatch: "Pumpkin Patch"
+        case .mapleGrove: "Maple Grove"
+        case .ciderStand: "Cider Stand"
+        case .woodlandCabin: "Woodland Cabin"
         }
     }
 
@@ -23,6 +38,10 @@ enum DecorationLayout: String, CaseIterable, Identifiable {
         case .newYork: "A brownstone, a wreath, and a corner streetlamp."
         case .alpineVillage: "A snug chalet under the pines."
         case .winterMarket: "Hot cocoa and warm lights under a striped awning."
+        case .pumpkinPatch: "A scarecrow keeping watch over hay and pumpkins."
+        case .mapleGrove: "A red maple, a rake, and a pile worth jumping in."
+        case .ciderStand: "Warm cider and apples under a striped awning."
+        case .woodlandCabin: "A cabin in the leaves with firewood by the door."
         }
     }
 
@@ -33,6 +52,10 @@ enum DecorationLayout: String, CaseIterable, Identifiable {
         case .newYork: PixelCatalog.newYork
         case .alpineVillage: PixelCatalog.alpineVillage
         case .winterMarket: PixelCatalog.winterMarket
+        case .pumpkinPatch: PixelCatalog.pumpkinPatch
+        case .mapleGrove: PixelCatalog.mapleGrove
+        case .ciderStand: PixelCatalog.ciderStand
+        case .woodlandCabin: PixelCatalog.woodlandCabin
         }
     }
 }
@@ -51,7 +74,14 @@ struct DecorationPiece: Identifiable {
 }
 
 enum DecorationCatalog {
-    static let all = DecorationLayout.allCases.flatMap(\.pieces) + PixelCatalog.extras
+    static let all = DecorationLayout.allCases.flatMap(\.pieces) + PixelCatalog.extras + PixelCatalog.fallExtras
+    private static let fallIDs = Set(DecorationLayout.allCases.filter { $0.season == .fall }.flatMap(\.pieces).map(\.id)
+                                     + PixelCatalog.fallExtras.map(\.id))
+
+    /// Every piece, with the given season's first.
+    static func all(for season: Season) -> [DecorationPiece] {
+        all.filter { fallIDs.contains($0.id) == (season == .fall) } + all.filter { fallIDs.contains($0.id) != (season == .fall) }
+    }
     private static let byID = Dictionary(uniqueKeysWithValues: all.map { ($0.id, $0) })
 
     static func piece(_ id: String) -> DecorationPiece? { byID[id] }
@@ -70,6 +100,375 @@ private enum PixelCatalog {
     static let extras: [DecorationPiece] = [
         candyCane(), sled(), bench(), mailbox(), lantern(), gingerbread(), pineBundle()
     ]
+
+    static let pumpkinPatch: [DecorationPiece] = [hayBale(), scarecrow(), pumpkinTrio()]
+    static let mapleGrove: [DecorationPiece] = [leafPile(), mapleTree(), appleBasket()]
+    static let ciderStand: [DecorationPiece] = [ciderBoard(), ciderStall(), appleCrate()]
+    static let woodlandCabin: [DecorationPiece] = [firewood(), cabin(), wheelbarrow()]
+    static let fallExtras: [DecorationPiece] = [
+        jackOLantern(), fenceCrow(), toadstools(), sunflower(), ciderBarrel()
+    ]
+
+    // MARK: Fall
+
+    /// A ribbed pumpkin whose body starts at (x, y); its stem rises three pixels above that.
+    private static func pumpkin(_ p: inout PixelSprite, x: Int, y: Int, width w: Int, height h: Int,
+                                dark: UInt32 = 0xB9541F, mid: UInt32 = 0xE0762B, light: UInt32 = 0xF2913D) {
+        let c = max(1, min(3, (h - 1) / 2, w / 4))
+        p.fill(x + w / 2 - 1, y - 3, 2, 4, 0x5E6B3A)
+        p.fill(x + w / 2, y - 3, 2, 1, 0x45522D)
+        p.polygon([(x + c, y), (x + w - c, y), (x + w, y + c), (x + w, y + h - c), (x + w - c, y + h),
+                   (x + c, y + h), (x, y + h - c), (x, y + c)], dark)
+        p.polygon([(x + c, y + 1), (x + w - c, y + 1), (x + w - 1, y + c), (x + w - 1, y + h - c),
+                   (x + w - c, y + h - 1), (x + c, y + h - 1), (x + 1, y + h - c), (x + 1, y + c)], mid)
+        let rib = max(1, w / 5)
+        p.fill(x + 2, y + c, rib, h - 2 * c, light)
+        p.fill(x + w / 2 - rib / 2, y + 1, rib, h - 2, light)
+        if w >= 9 {
+            p.fill(x + w / 2 - rib / 2 - 1, y + 2, 1, h - 4, dark)
+            p.fill(x + w / 2 + (rib + 1) / 2, y + 2, 1, h - 4, dark)
+            p.fill(x + 3, y + c, 1, 2, 0xFFC27A)
+        }
+    }
+
+    private static func pumpkinTrio() -> DecorationPiece {
+        var p = PixelSprite(30, 17)
+        pumpkin(&p, x: 0, y: 5, width: 15, height: 12)
+        pumpkin(&p, x: 21, y: 11, width: 9, height: 6, dark: 0xB8A888, mid: 0xE4D7B8, light: 0xF6EEDB)
+        pumpkin(&p, x: 12, y: 9, width: 11, height: 8, dark: 0xA9481C, mid: 0xD4661F, light: 0xEC8530)
+        return p.piece("Pumpkin trio")
+    }
+
+    private static func hayBale() -> DecorationPiece {
+        var p = PixelSprite(22, 14)
+        p.fill(0, 1, 22, 13, 0xA37C36)
+        p.fill(1, 0, 20, 13, 0xC9A04C)
+        p.fill(1, 0, 20, 2, 0xE3C16A)
+        for x in stride(from: 2, to: 21, by: 3) { p.fill(x, 3 + x % 2, 1, 8, 0xB58E3F) }
+        for x in stride(from: 3, to: 20, by: 4) { p.fill(x, 4, 1, 3, 0xEED08A) }
+        for x in [6, 15] {
+            p.fill(x, 0, 2, 14, 0x8A5A3A)
+            p.fill(x, 0, 1, 14, 0xA9744A)
+        }
+        p.fill(0, 13, 22, 1, 0x7D5E2A)
+        return p.piece("Hay bale")
+    }
+
+    private static func scarecrow() -> DecorationPiece {
+        var p = PixelSprite(25, 40)
+        p.fill(12, 15, 2, 25, 0x65432F)                    // post
+        p.fill(0, 18, 25, 2, 0x65432F)                     // crossbar
+        p.fill(0, 17, 2, 5, 0xE3C16A)                      // straw hands
+        p.fill(23, 17, 2, 5, 0xE3C16A)
+        p.fill(2, 17, 6, 5, 0xB8473F)                      // sleeves
+        p.fill(17, 17, 6, 5, 0xB8473F)
+        p.fill(7, 16, 11, 13, 0xB8473F)                    // shirt
+        for x in [9, 12, 15] { p.fill(x, 16, 1, 13, 0x8A2F33) }
+        for y in [19, 23, 27] { p.fill(2, y, 21, 1, 0x8A2F33) }
+        p.fill(15, 16, 3, 13, 0x9E3B38)
+        p.fill(10, 22, 2, 2, 0xE3C16A)                     // patch
+        p.fill(7, 28, 11, 1, 0x4A3226)                     // belt
+        p.fill(8, 29, 4, 8, 0x4E6E8E)                      // trousers
+        p.fill(14, 29, 4, 8, 0x4E6E8E)
+        p.fill(11, 29, 1, 8, 0x3A546E)
+        p.fill(17, 29, 1, 8, 0x3A546E)
+        p.fill(8, 36, 4, 2, 0xE3C16A)                      // straw cuffs
+        p.fill(14, 36, 4, 2, 0xE3C16A)
+        p.fill(8, 8, 9, 8, 0xE6CFA0)                       // burlap head
+        p.fill(15, 8, 2, 8, 0xCDB383)
+        p.fill(10, 11, 1, 1, 0x3B2A22)
+        p.fill(14, 11, 1, 1, 0x3B2A22)
+        for x in [10, 12, 14] { p.fill(x, 13, 1, 1, 0x8A5A3A) }
+        p.fill(7, 15, 11, 1, 0xE3C16A)                     // straw collar
+        p.fill(5, 6, 15, 2, 0xB58E3F)                      // hat brim
+        p.fill(8, 1, 9, 5, 0xD9B25A)
+        p.fill(14, 1, 3, 5, 0xC49D48)
+        p.fill(8, 5, 9, 1, 0x8A2F33)
+        return p.piece("Scarecrow", movesByDefault: false)
+    }
+
+    private static func mapleTree() -> DecorationPiece {
+        var p = PixelSprite(41, 48)
+        p.fill(18, 30, 5, 18, 0x65432F)
+        p.fill(19, 31, 1, 16, 0x8A5E42)
+        p.polygon([(18, 35), (13, 29), (15, 28), (21, 33)], 0x65432F)
+        p.polygon([(22, 35), (28, 28), (26, 27), (21, 33)], 0x65432F)
+        p.fill(16, 46, 9, 2, 0x4A3226)
+        p.polygon([(8, 6), (16, 1), (26, 1), (34, 6), (39, 14), (41, 22), (38, 30), (30, 35),
+                   (22, 33), (14, 36), (5, 31), (0, 22), (2, 13)], 0x8F3A1A)
+        p.polygon([(9, 8), (17, 3), (26, 3), (33, 8), (37, 15), (38, 22), (35, 28), (29, 32),
+                   (22, 30), (14, 33), (7, 29), (3, 22), (4, 14)], 0xC94F1F)
+        p.polygon([(10, 9), (18, 5), (24, 6), (27, 11), (21, 15), (13, 16), (8, 14)], 0xE8792A)
+        p.polygon([(24, 14), (32, 12), (36, 18), (33, 24), (26, 23)], 0xE8792A)
+        p.polygon([(6, 19), (13, 19), (16, 25), (10, 29), (6, 25)], 0xDD6A26)
+        for (x, y, w, h): (Int, Int, Int, Int) in [(12, 8, 4, 2), (19, 6, 3, 1), (27, 14, 3, 2),
+                                                   (8, 21, 3, 2), (16, 11, 2, 1), (30, 19, 2, 2)] {
+            p.fill(x, y, w, h, 0xF2A93B)
+        }
+        for (x, y, w): (Int, Int, Int) in [(15, 19, 2), (22, 24, 3), (31, 27, 2), (20, 13, 1), (12, 27, 2)] {
+            p.fill(x, y, w, 1, 0x8F3A1A)
+        }
+        for (x, y, color): (Int, Int, UInt32) in [(3, 38, 0xE8792A), (36, 40, 0xF2A93B), (9, 43, 0xC94F1F),
+                                                  (30, 44, 0xE8792A)] {
+            p.fill(x, y, 2, 1, color)                      // leaves on their way down
+        }
+        p.fill(11, 47, 7, 1, 0xE8792A)
+        p.fill(23, 47, 9, 1, 0xC94F1F)
+        p.fill(14, 46, 3, 1, 0xF2A93B)
+        p.fill(25, 46, 3, 1, 0xE8792A)
+        return p.piece("Red maple", movesByDefault: false)
+    }
+
+    private static func leafPile() -> DecorationPiece {
+        var p = PixelSprite(26, 22)
+        p.polygon([(22, 1), (24, 1), (18, 15), (16, 15)], 0xAD7950)   // rake handle
+        p.fill(19, 0, 7, 1, 0x596774)
+        for x in [19, 21, 23, 25] { p.fill(x, 1, 1, 3, 0x7C8A96) }
+        p.polygon([(0, 22), (3, 16), (8, 12), (14, 11), (19, 14), (23, 18), (26, 22)], 0xB5391A)
+        p.polygon([(2, 22), (5, 17), (9, 14), (14, 13), (18, 16), (22, 22)], 0xD9622B)
+        for (x, y, w, color): (Int, Int, Int, UInt32) in [
+            (8, 15, 3, 0xF2C14E), (12, 14, 2, 0xE89A2C), (6, 18, 2, 0xF2C14E), (15, 17, 3, 0xE89A2C),
+            (10, 19, 2, 0x8F4A1F), (18, 20, 2, 0xF2C14E), (3, 20, 2, 0xE89A2C), (13, 21, 3, 0x8F4A1F),
+            (21, 20, 2, 0xE89A2C), (9, 17, 1, 0x8F4A1F),
+        ] { p.fill(x, y, w, 1, color) }
+        return p.piece("Leaf pile and rake")
+    }
+
+    private static func appleBasket() -> DecorationPiece {
+        var p = PixelSprite(17, 14)
+        p.fill(4, 0, 9, 1, 0x8A5A3A)
+        p.fill(3, 1, 1, 5, 0x8A5A3A)
+        p.fill(13, 1, 1, 5, 0x8A5A3A)
+        p.fill(3, 4, 4, 3, 0xC8343A)
+        p.fill(8, 3, 4, 4, 0xC8343A)
+        p.fill(12, 5, 3, 2, 0xC8343A)
+        p.fill(6, 5, 3, 2, 0x9DB04A)
+        p.fill(4, 4, 1, 1, 0xF07A6E)
+        p.fill(9, 3, 1, 1, 0xF07A6E)
+        p.fill(10, 2, 1, 1, 0x45522D)
+        p.polygon([(1, 7), (16, 7), (14, 14), (3, 14)], 0x9A6B3F)
+        p.fill(2, 8, 13, 1, 0xC59757)
+        p.fill(3, 10, 11, 1, 0xC59757)
+        p.fill(3, 12, 11, 1, 0xB5854A)
+        for x in stride(from: 4, to: 14, by: 3) { p.fill(x, 8, 1, 6, 0x7B5230) }
+        p.fill(0, 6, 17, 2, 0xB5854A)
+        p.fill(0, 6, 17, 1, 0xD6AD6B)
+        return p.piece("Apple basket")
+    }
+
+    private static func ciderBoard() -> DecorationPiece {
+        var p = PixelSprite(15, 20)
+        p.fill(1, 2, 2, 18, 0x98735E)
+        p.fill(12, 2, 2, 18, 0x98735E)
+        p.fill(0, 1, 15, 15, 0xAF815E)
+        p.fill(1, 0, 13, 2, 0xC59A72)
+        p.fill(2, 3, 11, 11, 0x3C4F45)
+        p.fill(5, 6, 4, 4, 0xE6D9B9)                       // chalk apple
+        p.fill(4, 7, 6, 2, 0xE6D9B9)
+        p.fill(7, 4, 1, 2, 0xC5D6C2)
+        p.fill(8, 4, 2, 1, 0xC5D6C2)
+        p.fill(6, 7, 1, 1, 0x3C4F45)
+        p.fill(4, 12, 3, 1, 0xE9B36B)
+        p.fill(8, 12, 3, 1, 0xE9B36B)
+        return p.piece("Cider chalkboard")
+    }
+
+    private static func ciderStall() -> DecorationPiece {
+        var p = PixelSprite(50, 34)
+        p.fill(4, 10, 42, 24, 0x6B4636)
+        p.fill(8, 10, 34, 12, 0x8F5F45)
+        p.fill(9, 12, 32, 9, 0xB98257)
+        p.fill(9, 13, 32, 1, 0xD09B6A)
+        p.fill(10, 14, 2, 7, 0x9C6E50)
+        p.fill(37, 14, 2, 7, 0x9C6E50)
+        p.fill(4, 25, 42, 8, 0xA36E4B)
+        for x in stride(from: 7, to: 46, by: 5) { p.fill(x, 25, 1, 8, 0x82563F) }
+        p.fill(2, 22, 46, 3, 0xBD8C5F)
+        p.fill(2, 24, 46, 1, 0x6E4A39)
+        for (x, color): (Int, UInt32) in [(13, 0xC9812F), (17, 0xB96A24), (31, 0xC9812F)] {
+            p.fill(x, 17, 3, 5, color)                     // cider jugs
+            p.fill(x + 1, 15, 1, 2, 0xE9D5B1)
+            p.fill(x, 18, 1, 1, 0xF0B45E)
+        }
+        for x in [21, 24, 27] {
+            p.fill(x, 20, 2, 2, 0xC8343A)                  // apples
+            p.fill(x, 20, 1, 1, 0xF07A6E)
+        }
+        pumpkin(&p, x: 35, y: 18, width: 6, height: 4)
+        p.fill(21, 26, 8, 6, 0x3C4F45)                     // chalk sign on the counter front
+        p.fill(23, 28, 4, 1, 0xE6D9B9)
+        p.fill(24, 30, 2, 1, 0xE9B36B)
+        p.polygon([(0, 10), (5, 1), (45, 1), (50, 10), (49, 13), (1, 13)], 0xC65A23)
+        for x in [9, 21, 33] {
+            p.polygon([(x, 1), (x + 5, 1), (x + 6, 10), (x + 6, 12),
+                       (x - 2, 12), (x - 2, 10)], 0xF3DDB5)
+        }
+        p.fill(0, 10, 50, 1, 0x8C3D1B)
+        p.fill(4, 0, 42, 1, 0x9A4A22)
+        for (index, x) in stride(from: 5, to: 48, by: 7).enumerated() {
+            p.fill(x, 13, 2, 2, [0xF2C14E, 0xB5391A, 0xE89A2C][index % 3])   // bunting
+        }
+        return p.piece("Cider stall", movesByDefault: false)
+    }
+
+    private static func appleCrate() -> DecorationPiece {
+        var p = PixelSprite(19, 15)
+        for (x, y, color): (Int, Int, UInt32) in [(2, 3, 0xC8343A), (6, 1, 0xC8343A), (10, 2, 0x9DB04A),
+                                                  (14, 3, 0xD9622B)] {
+            p.fill(x, y + 1, 4, 4, color)
+            p.fill(x + 1, y, 2, 1, color)
+            p.fill(x + 1, y + 1, 1, 1, 0xFFE3C2)
+        }
+        p.fill(1, 7, 17, 8, 0x74544B)
+        p.fill(0, 6, 19, 3, 0xB48A63)
+        p.fill(2, 10, 14, 2, 0xAD805B)
+        p.fill(2, 13, 14, 1, 0xAD805B)
+        p.fill(3, 9, 1, 6, 0xC4A07C)
+        p.fill(14, 9, 1, 6, 0x9A6E52)
+        return p.piece("Apple crate")
+    }
+
+    private static func cabin() -> DecorationPiece {
+        var p = PixelSprite(49, 34)
+        p.fill(35, 3, 7, 13, 0x8B6358)
+        p.fill(34, 2, 9, 2, 0x5E4640)
+        p.fill(4, 15, 41, 18, 0x8F5E4A)
+        p.fill(5, 17, 38, 14, 0xBD8762)
+        for y in [20, 24, 28] { p.fill(5, y, 38, 1, 0xA87456) }
+        p.fill(3, 32, 43, 2, 0x665A58)
+        p.polygon([(0, 19), (24, 0), (49, 19), (45, 21), (24, 7), (4, 21)], 0x4A2F28)
+        p.polygon([(0, 17), (24, 0), (49, 17), (46, 18), (24, 5), (3, 19)], 0x8C4A32)
+        for (x, y, color): (Int, Int, UInt32) in [(10, 11, 0xF2C14E), (15, 8, 0xE89A2C), (30, 6, 0xF2C14E),
+                                                  (37, 10, 0xE89A2C), (42, 14, 0xD9622B), (6, 15, 0xD9622B)] {
+            p.fill(x, y, 2, 1, color)                      // leaves caught on the roof
+        }
+        p.polygon([(24, 6), (38, 16), (10, 16)], 0xAA7457)
+        p.fill(21, 10, 6, 5, 0x745351)
+        p.fill(22, 11, 4, 3, 0xFAD390)
+        p.fill(21, 22, 8, 10, 0x6D4B42)
+        p.fill(22, 23, 6, 9, 0x59675E)
+        p.fill(26, 28, 1, 1, 0xF9CB7C)
+        p.fill(23, 24, 4, 3, 0xD9622B)                     // autumn wreath
+        p.fill(24, 25, 2, 1, 0x59675E)
+        p.fill(23, 24, 1, 1, 0xF2C14E)
+        p.fill(26, 26, 1, 1, 0xB5391A)
+        for x in [9, 33] {
+            p.fill(x - 1, 21, 8, 8, 0x805244)
+            p.fill(x, 22, 6, 6, 0xFFCC85)
+            p.fill(x + 2, 22, 1, 6, 0xA26D4C)
+            p.fill(x, 24, 6, 1, 0xA26D4C)
+            p.fill(x - 1, 28, 8, 1, 0x6D4B42)
+        }
+        p.fill(18, 32, 14, 2, 0x9A8272)
+        pumpkin(&p, x: 16, y: 28, width: 5, height: 5)
+        return p.piece("Woodland cabin", movesByDefault: false)
+    }
+
+    private static func firewood() -> DecorationPiece {
+        var p = PixelSprite(20, 14)
+        for (y, xs) in [(10, [0, 4, 8, 12, 16]), (6, [2, 6, 10, 14]), (2, [4, 8, 12])] {
+            for x in xs {
+                p.fill(x, y, 4, 4, 0x7A4F38)
+                p.fill(x + 1, y + 1, 2, 2, 0xD9B98A)
+                p.fill(x + 1, y + 1, 1, 1, 0xEBD3A8)
+                p.fill(x + 3, y, 1, 4, 0x5E3B2A)
+            }
+        }
+        p.fill(9, 1, 2, 1, 0xE89A2C)
+        p.fill(5, 5, 2, 1, 0xD9622B)
+        return p.piece("Firewood stack")
+    }
+
+    private static func wheelbarrow() -> DecorationPiece {
+        var p = PixelSprite(27, 17)
+        pumpkin(&p, x: 7, y: 3, width: 8, height: 6)
+        pumpkin(&p, x: 15, y: 4, width: 7, height: 5, dark: 0xA9481C, mid: 0xD4661F, light: 0xEC8530)
+        p.polygon([(0, 5), (2, 5), (9, 9), (8, 10)], 0xAD7950)        // handle
+        p.polygon([(4, 7), (24, 7), (21, 13), (8, 13)], 0x4E7A6B)     // tray
+        p.fill(3, 6, 22, 1, 0x6FA08E)
+        p.fill(6, 8, 14, 1, 0x5E8E7C)
+        p.fill(9, 13, 1, 4, 0x65432F)                                  // leg
+        p.fill(8, 16, 3, 1, 0x65432F)
+        p.fill(18, 12, 6, 4, 0x2F3A3F)                                 // wheel
+        p.fill(19, 11, 4, 6, 0x2F3A3F)
+        p.fill(20, 13, 2, 2, 0x8C9AA1)
+        return p.piece("Pumpkin wheelbarrow")
+    }
+
+    private static func jackOLantern() -> DecorationPiece {
+        var p = PixelSprite(17, 16)
+        pumpkin(&p, x: 0, y: 3, width: 17, height: 13)
+        p.fill(4, 7, 3, 2, 0xFFD877)
+        p.fill(5, 6, 1, 1, 0xFFD877)
+        p.fill(10, 7, 3, 2, 0xFFD877)
+        p.fill(11, 6, 1, 1, 0xFFD877)
+        p.fill(8, 9, 1, 1, 0xFFD877)
+        p.fill(4, 11, 9, 2, 0xFFD877)
+        p.fill(6, 11, 1, 1, 0xE0762B)
+        p.fill(10, 12, 1, 1, 0xE0762B)
+        p.fill(4, 12, 1, 1, 0xE0762B)
+        p.fill(12, 12, 1, 1, 0xE0762B)
+        return p.piece("Jack-o'-lantern")
+    }
+
+    private static func fenceCrow() -> DecorationPiece {
+        var p = PixelSprite(18, 24)
+        p.fill(7, 8, 4, 16, 0x8A6A52)
+        p.fill(8, 8, 1, 16, 0xAD8A6E)
+        p.fill(0, 13, 18, 3, 0x9A7A60)
+        p.fill(0, 13, 18, 1, 0xB89878)
+        p.polygon([(3, 6), (0, 8), (5, 8)], 0x1A1C22)
+        p.polygon([(5, 3), (11, 2), (14, 5), (13, 8), (6, 8), (3, 6)], 0x23262E)
+        p.fill(11, 1, 3, 3, 0x23262E)
+        p.fill(14, 2, 2, 1, 0xE9A23B)
+        p.fill(12, 2, 1, 1, 0xF5F5F0)
+        p.fill(6, 4, 4, 2, 0x3A3F4B)
+        return p.piece("Fence crow", movesByDefault: false)
+    }
+
+    private static func toadstools() -> DecorationPiece {
+        var p = PixelSprite(15, 12)
+        p.fill(4, 6, 4, 6, 0xF1E3C8)
+        p.fill(7, 6, 1, 6, 0xD8C6A6)
+        p.polygon([(0, 6), (3, 2), (7, 1), (10, 3), (12, 6)], 0xC8343A)
+        p.fill(3, 3, 1, 1, 0xFFF4E0)
+        p.fill(6, 2, 2, 1, 0xFFF4E0)
+        p.fill(8, 4, 1, 1, 0xFFF4E0)
+        p.fill(2, 5, 1, 1, 0xFFF4E0)
+        p.fill(12, 9, 2, 3, 0xF1E3C8)
+        p.fill(10, 8, 5, 1, 0xC8343A)
+        p.fill(11, 7, 3, 1, 0xC8343A)
+        p.fill(12, 7, 1, 1, 0xFFF4E0)
+        return p.piece("Toadstools")
+    }
+
+    private static func sunflower() -> DecorationPiece {
+        var p = PixelSprite(13, 26)
+        p.fill(6, 10, 1, 16, 0x5E7B3A)
+        p.fill(3, 16, 3, 2, 0x6F8F45)
+        p.fill(7, 19, 3, 2, 0x6F8F45)
+        p.fill(4, 0, 5, 11, 0xF2B93B)
+        p.fill(1, 3, 11, 5, 0xF2B93B)
+        p.fill(2, 1, 9, 9, 0xF7CE5B)
+        p.fill(4, 3, 5, 5, 0x6B4226)
+        p.fill(5, 4, 2, 2, 0x8A5A3A)
+        return p.piece("Sunflower", movesByDefault: false)
+    }
+
+    private static func ciderBarrel() -> DecorationPiece {
+        var p = PixelSprite(15, 17)
+        p.polygon([(2, 0), (13, 0), (15, 5), (15, 12), (13, 17), (2, 17), (0, 12), (0, 5)], 0x8A5A3A)
+        p.polygon([(3, 1), (12, 1), (14, 5), (14, 12), (12, 16), (3, 16), (1, 12), (1, 5)], 0xAD7950)
+        for x in [5, 9] { p.fill(x, 1, 1, 15, 0x8F6240) }
+        for y in [4, 11] {
+            p.fill(0, y, 15, 2, 0x4F5B60)
+            p.fill(1, y, 5, 1, 0x8799A0)
+        }
+        p.fill(7, 7, 2, 2, 0xC9A04C)
+        return p.piece("Cider barrel")
+    }
+
+    // MARK: Winter
 
     private static func present(_ name: String, width: Int, height: Int,
                                 box: UInt32, edge: UInt32, ribbon: UInt32) -> DecorationPiece {

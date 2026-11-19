@@ -1,4 +1,5 @@
 import AppKit
+import SnowCore
 import SwiftUI
 
 struct WallpapersView: View {
@@ -12,9 +13,9 @@ struct WallpapersView: View {
         let name: String
     }
 
-    private let starters = WinterWallpaper.allCases.map(WallpaperEntry.builtIn)
+    @State private var season = Season.active
     @State private var imported: [WallpaperEntry] = []
-    @State private var selected = WallpaperEntry.builtIn(.blueHour)
+    @State private var selected = WallpaperEntry.builtIn(Season.active == .fall ? .goldenHour : .blueHour)
     @State private var displays: [Display] = []
     @State private var target = DisplayTarget.all
     @State private var showsImporter = false
@@ -30,7 +31,7 @@ struct WallpapersView: View {
                             Text("Wallpapers")
                                 .font(.largeTitle.weight(.semibold))
                                 .accessibilityAddTraits(.isHeader)
-                            Text("Pick a backdrop for the snow.")
+                            Text(season == .fall ? "Pick a backdrop for the leaves." : "Pick a backdrop for the snow.")
                                 .foregroundStyle(.secondary)
                         }
                         Spacer()
@@ -38,7 +39,9 @@ struct WallpapersView: View {
                             .disabled(isWorking)
                     }
 
-                    gallery("Winter collection", entries: starters)
+                    // The season on the desktop comes first; the other stays within reach.
+                    gallery("\(season.collectionTitle) collection", entries: starters(season))
+                    gallery("\(season.other.collectionTitle) collection", entries: starters(season.other))
                     if !imported.isEmpty {
                         gallery("Your images", entries: imported)
                     }
@@ -76,6 +79,8 @@ struct WallpapersView: View {
         }
         .fileImporter(isPresented: $showsImporter, allowedContentTypes: WallpaperLibrary.importTypes,
                       allowsMultipleSelection: true, onCompletion: importImages)
+        .onReceive(NotificationCenter.default.publisher(for: UserDefaults.didChangeNotification)
+            .receive(on: RunLoop.main)) { _ in season = Season.active }
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)) { _ in
             updateDisplays()
         }
@@ -87,6 +92,10 @@ struct WallpapersView: View {
                 status = "Couldn’t open the wallpaper library."
             }
         }
+    }
+
+    private func starters(_ season: Season) -> [WallpaperEntry] {
+        WinterWallpaper.allCases.filter { $0.season == season }.map(WallpaperEntry.builtIn)
     }
 
     private func gallery(_ title: String, entries: [WallpaperEntry]) -> some View {

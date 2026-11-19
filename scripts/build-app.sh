@@ -52,6 +52,8 @@ cp "$project_root/App/Info.plist" "$staged_app/Contents/Info.plist"
 # Keep Sparkle's versioned symlinks and its signed updater helpers intact.
 ditto "$sparkle_framework" "$staged_app/Contents/Frameworks/Sparkle.framework"
 cp "$sparkle_artifact/LICENSE" "$staged_app/Contents/Resources/Sparkle-LICENSE.txt"
+# Seasons is a fork of Snowy; the MIT licence asks that its notice travel with every copy.
+cp "$project_root/LICENSE" "$staged_app/Contents/Resources/LICENSE.txt"
 # SwiftPM can add developer-toolchain paths for its own build products.
 runtime_paths="$(otool -l "$staged_binary" | awk '/cmd LC_RPATH$/ { getline; getline; sub(/^[[:space:]]*path /, ""); sub(/ \(offset [0-9]+\)$/, ""); print }')"
 while IFS= read -r runtime_path; do

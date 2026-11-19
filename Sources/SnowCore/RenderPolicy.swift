@@ -48,8 +48,10 @@ public struct SimulationBudget: Sendable {
     public var fallingLeaves: Int { flakes / 6 }
     /// Leaves lifted off a pile by the blower, a sweep, a moving window, or a gust.
     public var blownLeaves: Int { cells / 8 }
-    /// Resting leaves drawn on the piles; the pile coarsens rather than exceed this.
-    public var pileLeaves: Int { cells }
+    /// Resting leaves drawn on the piles; the pile coarsens rather than exceed this. Leaves are
+    /// cheap instanced quads, so even a display with a small share of the cells keeps enough
+    /// of them to cover a full desktop without coarsening.
+    public var pileLeaves: Int { cells > 0 ? max(cells, 2048) * 3 : 0 }
     public var maximumAirborneLeaves: Int { fallingLeaves + blownLeaves }
 
     public init(flakes: Int = 350, debris: Int = 96, cells: Int = 4096, surfaces: Int = 48) {

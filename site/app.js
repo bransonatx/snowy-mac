@@ -43,7 +43,6 @@
   let wind = 0, windTarget = 0, breeze = 0, gustLeft = 0, gustDir = 1, nextGust = 7;
   let spawnDebt = 0;
   let last = 0;
-  let topZ = 20;
   let drag = null;
   const pointer = { x: -999, y: -999, vx: 0, vy: 0, t: 0, inside: false, overUi: false };
 
@@ -650,19 +649,36 @@
     document.addEventListener('pointerleave', () => { pointer.inside = false; });
     window.addEventListener('blur', () => { pointer.inside = false; });
 
+    // A phone's address bar hiding changes the height alone, and the piles should survive that.
+    // Only a new width, which changes the floor and may restack the windows, starts over.
     let resizeTimer = 0;
     window.addEventListener('resize', () => {
+      const oldWidth = width, oldRatio = ratio;
+      resize();
+      if (ratio !== oldRatio) buildSprites();
+      if (width === oldWidth) return;
       clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => { resize(); buildSprites(); clearAll(); seed(); }, 120);
+      resizeTimer = setTimeout(() => {
+        for (const win of $$('.win')) { win.style.left = ''; win.style.top = ''; }   // back on screen
+        clearAll();
+        seed();
+      }, 120);
     });
     reduceMotion.addEventListener('change', () => { clearAll(); seed(); });
   }
 
   const origin = () => $('.menubar').getBoundingClientRect().bottom;
 
+  // Windows are renumbered each time one comes forward, so the order never climbs past the
+  // Dock, the leaf canvas or the menu bar however long the page stays open.
   function front(win) {
-    for (const other of $$('.win')) other.classList.toggle('front', other === win);
-    win.style.zIndex = String(++topZ);
+    const depth = el => parseInt(el.style.zIndex, 10) || 10;
+    const order = $$('.win').filter(other => other !== win).sort((a, b) => depth(a) - depth(b));
+    order.push(win);
+    order.forEach((el, index) => {
+      el.style.zIndex = String(20 + index);
+      el.classList.toggle('front', el === win);
+    });
   }
 
   function clock() {

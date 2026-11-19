@@ -1,4 +1,5 @@
 import AppKit
+import SnowCore
 import SwiftUI
 
 @MainActor
@@ -35,19 +36,28 @@ final class WelcomeWindowController: NSWindowController, NSWindowDelegate {
 enum WelcomeStep: Int, CaseIterable {
     case desktop, wind, menu
 
+    /// The walkthrough talks about whatever is falling when it is shown.
+    private var fall: Bool { Season.active == .fall }
+
     var title: String {
         switch self {
-        case .desktop: "Snow on your desktop"
-        case .wind: "Sweep snow and set the wind"
+        case .desktop: fall ? "Leaves on your desktop" : "Snow on your desktop"
+        case .wind: fall ? "Sweep leaves and set the wind" : "Sweep snow and set the wind"
         case .menu: "Seasons in the menu bar"
         }
     }
 
     var detail: String {
         switch self {
-        case .desktop: "Snow settles on windows, widgets, and the bottom Dock. When you move a window, its snow moves with it."
-        case .wind: "Sweep across a pile with your pointer. For a wider sweep, choose Shovel from Cursor Tool."
-        case .menu: "Click the snowflake in the menu bar to change snowfall, pause it, or clear settled snow."
+        case .desktop: fall
+            ? "Leaves settle on windows, widgets, and the bottom Dock. When you move a window, its pile moves with it."
+            : "Snow settles on windows, widgets, and the bottom Dock. When you move a window, its snow moves with it."
+        case .wind: fall
+            ? "Sweep across a pile with your pointer. For more, choose Rake or Leaf Blower from Cursor Tool."
+            : "Sweep across a pile with your pointer. For a wider sweep, choose Shovel from Cursor Tool."
+        case .menu: fall
+            ? "Click the leaf in the menu bar to change how many leaves fall, pause them, or clear the piles."
+            : "Click the snowflake in the menu bar to change snowfall, pause it, or clear settled snow."
         }
     }
 
@@ -61,7 +71,7 @@ enum WelcomeStep: Int, CaseIterable {
 
     var symbol: String {
         switch self {
-        case .desktop: "snowflake"
+        case .desktop: fall ? "leaf.fill" : "snowflake"
         case .wind: "wind"
         case .menu: "menubar.rectangle"
         }
@@ -111,7 +121,7 @@ struct WelcomeView: View {
                 if let previous = WelcomeStep(rawValue: step.rawValue - 1) {
                     Button("Back") { step = previous }
                 }
-                Button(step == .menu ? "Let it snow" : "Continue") {
+                Button(step == .menu ? (Season.active == .fall ? "Let them fall" : "Let it snow") : "Continue") {
                     if let next = WelcomeStep(rawValue: step.rawValue + 1) {
                         step = next
                     } else {
@@ -274,7 +284,7 @@ private struct WelcomePreview: View {
                 Text("File")
                 Text("Edit")
                 Spacer()
-                Image(systemName: "snowflake")
+                Image(systemName: Season.active == .fall ? "leaf.fill" : "snowflake")
                     .foregroundStyle(.white)
                     .frame(width: 20, height: 17)
                     .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 4))
@@ -290,8 +300,8 @@ private struct WelcomePreview: View {
                 Text("Seasons").fontWeight(.semibold)
                 Divider()
                 Text("Open Seasons…")
-                Text("Pause Snow")
-                Text("Clear Settled Snow")
+                Text(Season.active == .fall ? "Pause Leaves" : "Pause Snow")
+                Text(Season.active == .fall ? "Clear Fallen Leaves" : "Clear Settled Snow")
                 HStack {
                     Text("Cursor Tool")
                     Spacer()

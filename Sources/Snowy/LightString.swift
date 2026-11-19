@@ -1,7 +1,7 @@
 import Foundation
 
 enum LightPalette: String, Codable, CaseIterable, Identifiable, Sendable {
-    case classic, warmWhite, peppermint, frost
+    case classic, warmWhite, peppermint, frost, harvest
 
     var id: Self { self }
 
@@ -11,6 +11,7 @@ enum LightPalette: String, Codable, CaseIterable, Identifiable, Sendable {
         case .warmWhite: "Warm White"
         case .peppermint: "Peppermint"
         case .frost: "Frost"
+        case .harvest: "Harvest"
         }
     }
 
@@ -20,6 +21,7 @@ enum LightPalette: String, Codable, CaseIterable, Identifiable, Sendable {
         case .warmWhite: [0xFFEBC2, 0xFFD788, 0xFFF4DF]
         case .peppermint: [0xFF5367, 0xFFF4DC, 0xFF838A]
         case .frost: [0x80C9FF, 0xD7F6FF, 0x9EB0FF, 0xEEF7FF]
+        case .harvest: [0xFFB24D, 0xFF7B39, 0xE8492F, 0xFFD877]
         }
     }
 }

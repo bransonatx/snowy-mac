@@ -3,7 +3,8 @@ import ImageIO
 import SnowCore
 import UniformTypeIdentifiers
 
-/// Development tool. `swift run Snowy --preview out.png [--season fall] [--at 8,30,75] [--tool blower]
+/// Development tool. `swift run Snowy --art out.png` draws the decorations and wallpapers.
+/// `swift run Snowy --preview out.png [--season fall] [--at 8,30,75] [--tool blower]
 /// [--stroke 29.5] [--age 0.6] [--scale 2]` runs the real simulation and renderer over a mock
 /// desktop and writes the requested moments as one stacked image, so a visual change can be
 /// checked without covering the actual desktop.
@@ -21,6 +22,7 @@ enum Preview {
         func value(_ name: String) -> String? {
             arguments.firstIndex(of: name).flatMap { arguments.indices.contains($0 + 1) ? arguments[$0 + 1] : nil }
         }
+        if let sheet = value("--art") { return writeArtSheet(to: sheet) }
         guard let path = value("--preview") else { return false }
         let times = (value("--at") ?? "8,30,75").split(separator: ",").compactMap { Float($0) }.sorted()
         let stroke = value("--stroke").flatMap { Float($0) }
@@ -73,6 +75,52 @@ enum Preview {
             FileHandle.standardError.write(Data("Preview failed: \(error)\n".utf8))
             exit(1)
         }
+        return true
+    }
+
+    /// `--art out.png`: every decoration layout and loose piece, then the starter wallpapers,
+    /// so new artwork can be checked without opening the app.
+    private static func writeArtSheet(to path: String) -> Bool {
+        let pixel = 5, rowHeight = 56 * pixel, width = 1_500
+        let layouts = DecorationLayout.allCases.filter { $0 != .none }
+        let inLayouts = Set(layouts.flatMap(\.pieces).map(\.id))
+        let loose = DecorationCatalog.all.filter { !inLayouts.contains($0.id) }
+        // Two layouts share a row; loose pieces fill the last rows.
+        var rows: [[DecorationPiece]] = stride(from: 0, to: layouts.count, by: 2).map { index in
+            layouts[index].pieces + (index + 1 < layouts.count ? layouts[index + 1].pieces : [])
+        }
+        rows.append(Array(loose.prefix(7)))
+        rows.append(Array(loose.dropFirst(7)))
+        let wallpapers = WinterWallpaper.allCases.compactMap { $0.makeImage(width: width / 2) }
+        let wallpaperHeight = wallpapers.first.map(\.height) ?? 0
+        let height = rows.count * rowHeight + (wallpapers.count + 1) / 2 * wallpaperHeight
+        guard let context = bitmap(width: width, height: height) else { return false }
+        context.interpolationQuality = .none
+        var top = height
+        for (index, row) in rows.enumerated() {
+            top -= rowHeight
+            // Alternate a dusk and a daylight backdrop so light and dark pieces both read.
+            context.setFillColor(index.isMultiple(of: 2) ? CGColor(red: 0.25, green: 0.36, blue: 0.50, alpha: 1)
+                                                         : CGColor(red: 0.80, green: 0.74, blue: 0.62, alpha: 1))
+            context.fill(CGRect(x: 0, y: top, width: width, height: rowHeight))
+            var x = 20
+            for piece in row {
+                context.draw(piece.image, in: CGRect(x: x, y: top + 12, width: piece.width * pixel,
+                                                     height: piece.height * pixel))
+                x += piece.width * pixel + 24
+            }
+        }
+        for (index, wallpaper) in wallpapers.enumerated() {
+            if index.isMultiple(of: 2) { top -= wallpaperHeight }
+            context.draw(wallpaper, in: CGRect(x: index.isMultiple(of: 2) ? 0 : width / 2, y: top,
+                                               width: wallpaper.width, height: wallpaper.height))
+        }
+        guard let sheet = context.makeImage(),
+              let destination = CGImageDestinationCreateWithURL(URL(fileURLWithPath: path) as CFURL,
+                                                                UTType.png.identifier as CFString, 1, nil) else { return false }
+        CGImageDestinationAddImage(destination, sheet, nil)
+        guard CGImageDestinationFinalize(destination) else { return false }
+        print("\(rows.reduce(0) { $0 + $1.count }) pieces, \(wallpapers.count) wallpapers -> \(path)")
         return true
     }
 

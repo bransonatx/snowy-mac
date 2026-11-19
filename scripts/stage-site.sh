@@ -8,4 +8,5 @@ if [[ ! -f "$dmg" ]]; then
   exit 1
 fi
 cp "$dmg" "$project_root/site/${dmg:t}"
+cp "$project_root/LICENSE" "$project_root/site/LICENSE.txt"
 print "Staged ${dmg:t} in site/ ($(du -h "$dmg" | cut -f1 | tr -d ' '))."
