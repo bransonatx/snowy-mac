@@ -7,6 +7,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSM
     private var statusItem: NSStatusItem?
     private let pauseItem = NSMenuItem(title: "Pause Snow", action: #selector(togglePause), keyEquivalent: "p")
     private let stateItem = NSMenuItem(title: "", action: nil, keyEquivalent: "")
+    private let thawItem = NSMenuItem(title: "Thaw Settled Snow", action: #selector(thawSnow), keyEquivalent: "t")
     private var weatherItems: [NSMenuItem] = []
     private var windPopover: NSPopover?
     private var toolItems: [NSMenuItem] = []
@@ -57,6 +58,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSM
         } catch {
             stateItem.title = "Metal is unavailable on this Mac"
             pauseItem.isEnabled = false
+            thawItem.isEnabled = false
         }
         updateMenu()
         if coordinator != nil {
@@ -108,6 +110,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSM
         let clear = NSMenuItem(title: "Clear Settled Snow", action: #selector(clearSnow), keyEquivalent: "k")
         clear.target = self
         menu.addItem(clear)
+        thawItem.target = self
+        menu.addItem(thawItem)
         let tool = NSMenuItem(title: "Cursor Tool", action: nil, keyEquivalent: "")
         let tools = NSMenu(title: "Cursor Tool")
         tools.autoenablesItems = false
@@ -195,6 +199,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSM
     private func updateMenu() {
         guard let coordinator else { return }
         pauseItem.title = coordinator.paused ? "Resume Snow" : "Pause Snow"
+        // A thaw melts on the running snow clock, so it is unavailable while that is stopped.
+        thawItem.isEnabled = coordinator.canThaw
         if coordinator.failed { stateItem.title = "Rendering stopped — relaunch to retry" }
         else if coordinator.policy.suspended { stateItem.title = "Resting while your Mac cools down" }
         else if coordinator.paused { stateItem.title = "Snow is paused" }
@@ -211,6 +217,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSM
 
     @objc private func togglePause() { coordinator?.paused.toggle() }
     @objc private func clearSnow() { coordinator?.clear() }
+    @objc private func thawSnow() { coordinator?.thaw() }
     @objc private func showWind() {
         // A menu action runs during tracking; show after it closes so the popover receives focus.
         DispatchQueue.main.async { [weak self] in

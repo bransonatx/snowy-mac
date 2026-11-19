@@ -105,6 +105,20 @@ final class DesktopCoordinator {
         for display in displays { display.renderer.simulation.clear() }
     }
 
+    /// A thaw needs the running snow clock: not paused, asleep, suspended, or failed.
+    var canThaw: Bool { running }
+
+    /// Melts settled snow gradually where snow is animating. A display without a running
+    /// frame clock (fullscreen content, not ready yet) clears at once, so no thaw is left
+    /// waiting to play out when it returns.
+    func thaw() {
+        guard canThaw else { return }
+        for display in displays {
+            let simulation = display.renderer.simulation
+            if display.renderer.view.isPaused { simulation.clear() } else { simulation.beginThaw() }
+        }
+    }
+
     func setDecorations(_ configuration: DecorationConfiguration) {
         decorationConfiguration = configuration
         for display in displays {

@@ -142,4 +142,11 @@ public final class SnowDrift {
     func clear() {
         for i in heights.indices { heights[i] = 0 }
     }
+
+    /// Uniformly lowers the whole profile for a thaw. It can only remove height.
+    func melt(by factor: Float) {
+        guard factor.isFinite, factor < 1 else { return }
+        let scale = max(0, factor)
+        for i in heights.indices { heights[i] *= scale }
+    }
 }

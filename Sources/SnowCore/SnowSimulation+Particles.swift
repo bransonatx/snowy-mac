@@ -96,6 +96,8 @@ extension SnowSimulation {
             guard let hit = nearest else { particle.position = end; return false }
             particle.position = hit.position + hit.normal * 0.05
             if let index = hit.drift {
+                // Snowfall recycles without settling while a thaw is melting the caps.
+                if recycleOnContact && isThawing { return true }
                 particle.mass = drifts[index].depositMass(at: hit.position.x - drifts[index].surface.x,
                                                         mass: particle.mass, snowfall: recycleOnContact)
                 meshDirty = true

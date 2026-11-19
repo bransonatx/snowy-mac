@@ -113,6 +113,16 @@ public final class GranularSnow {
         revision &+= 1
     }
 
+    /// Uniformly thins every occupied cell for a thaw; emptied cells leave the active list.
+    public func melt(by factor: Float) {
+        guard factor.isFinite, factor < 1, !active.isEmpty else { return }
+        let scale = max(0, factor)
+        for index in active { mass[index] *= scale }
+        compact()
+        searchOrigin = nil
+        revision &+= 1
+    }
+
     /// Rasterize the rounded union with two updates per body/row and a single row-prefix pass.
     /// Cost is bounded by grid size plus summed body heights, not bodyCount * screenArea.
     public func setBodies(_ input: [SolidBody]) {

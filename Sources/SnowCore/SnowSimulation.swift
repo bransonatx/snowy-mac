@@ -58,6 +58,8 @@ public final class SnowSimulation {
             + carriedContacts.reduce(0) { $0 + $1.mass }
     }
     var cornerWindDirty = true
+    /// Simulated seconds left in a thaw; zero when none is running.
+    public internal(set) var thawRemaining: Float = 0
 
     public init(size: SIMD2<Float>, budget: SimulationBudget = SimulationBudget(), seed: UInt64 = 1) {
         let width = size.x.isFinite ? max(1, min(65_536, size.x)) : 1
@@ -85,6 +87,7 @@ public final class SnowSimulation {
     public func resetPointer() { previousCursor = nil }
 
     public func clear() {
+        thawRemaining = 0
         for drift in drifts { drift.clear() }
         looseSnow.clear()
         supportTransfers.removeAll(keepingCapacity: true)
@@ -148,7 +151,9 @@ public final class SnowSimulation {
             previousCursor = cursor
         } else { previousCursor = nil }
 
-        for drift in drifts { drift.accumulate(dt: dt, intensity: snowfall.density) }
+        // New snowfall waits for a thaw to finish; flakes keep falling and recycling.
+        if isThawing { advanceThaw(dt: dt) }
+        else { for drift in drifts { drift.accumulate(dt: dt, intensity: snowfall.density) } }
         if settleAge >= 0.1 {
             for drift in drifts { drift.settle() }
             settleAge = 0

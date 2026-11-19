@@ -22,6 +22,7 @@ Click the snowflake in your menu bar to make yourself comfortable:
 - Brush snow away with the **Glove**, or choose **Shovel** for a proper clear-out.
 - Open **Wind…** and stretch or rotate the arrow to change its strength and direction.
 - **Pause** the weather or **Clear Settled Snow** whenever you like.
+- Choose **Thaw Settled Snow** to let it melt away over a few seconds instead. New snow waits until the thaw is done. With Reduced Motion on, it clears at once.
 
 Snow collects on window tops, widgets, Spotlight, and a bottom-positioned Dock. Moving windows push it around; closing Spotlight lets its uncovered snow fall. Side-positioned Docks are intentionally left out.
 
@@ -76,6 +77,8 @@ npm --prefix website run build
 The tests run headlessly. They don’t open the app, inspect your desktop, or run benchmarks. See [CONTRIBUTING.md](CONTRIBUTING.md) for the project layout and release steps, and [the architecture notes](docs/architecture.md) for the physics and resource limits.
 
 ## Credits and license
+
+This is a fork of [Snowy](https://github.com/soloiaros/snowy-mac), created by Yaroslav Solovev ([soloiaros](https://github.com/soloiaros)). The app, its physics, rendering, and artwork are the original author’s work. This fork adds **Thaw Settled Snow**.
 
 The readable, personal repository style was inspired by [Window Sweaters](https://github.com/saragordic/window-sweaters). Snowy has its own implementation and artwork; it does not include Window Sweaters or JankyBorders code.
 
