@@ -16,7 +16,7 @@ Needs **Node.js 22 or later**.
 
 ```sh
 npm --prefix fork-website run dev      # http://127.0.0.1:4174
-npm --prefix fork-website test         # engine, geometry and preference tests
+npm --prefix fork-website test         # engine, geometry, preference and download tests
 npm --prefix fork-website run build    # static site in fork-website/dist
 ```
 
@@ -28,4 +28,11 @@ The folder is ready for Vercel: set the project’s **Root Directory** to `fork-
 
 ## The download button
 
-`#download` in [`index.html`](index.html) links to `https://github.com/bransonatx/snowy-mac/releases/latest`. It has nothing to offer until this fork publishes a release with a built app. A click also shows a short note about opening a build that Apple has not notarized.
+`#download` in [`index.html`](index.html) saves [`downloads/Snowy-macOS-arm64.dmg`](downloads), which the site serves itself. A click also shows how to install it and what to do when macOS blocks a build that Apple has not notarized.
+
+The disk image is a built copy of this fork’s app, committed here so the site needs nothing else. After changing the app, rebuild it and replace the file from the repository root:
+
+```sh
+./scripts/package-release.sh
+cp build/releases/Snowy-macOS-arm64.dmg fork-website/downloads/
+```

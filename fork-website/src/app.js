@@ -982,7 +982,7 @@ function resetDownloadPointer() {
   engine.resetPointer();
   updateCursor();
 }
-// The download itself is a plain link to the latest release; this only adds the first-launch note.
+// The download itself is a plain link to the DMG this site serves; this only adds the first-launch note.
 const downloadLink = document.querySelector("#download");
 downloadLink.addEventListener("click", () => {
   resetDownloadPointer();

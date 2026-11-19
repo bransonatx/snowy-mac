@@ -35,6 +35,7 @@ for (const file of [
   "styles.css",
   "src",
   "assets",
+  "downloads",
 ]) {
   await cp(resolve(root, file), resolve(dist, file), { recursive: true });
 }

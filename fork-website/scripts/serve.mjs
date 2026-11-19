@@ -13,7 +13,7 @@ const mime = {
   ".png": "image/png",
   ".webp": "image/webp",
   ".ico": "image/x-icon",
-  ".mp3": "audio/mpeg",
+  ".dmg": "application/x-apple-diskimage",
 };
 const port = Number(process.env.PORT || 4174);
 http

@@ -417,13 +417,24 @@ async function desktopCheck(run) {
   }
 }
 
-/** The download is a plain link to the latest release; a click only adds the first-launch note. */
+/** The download is a plain link to the DMG this site serves; a click only adds the first-launch note. */
 async function downloadCheck(p) {
   assert.equal(
     await p.evaluate('document.querySelector("#download").href'),
-    "https://github.com/bransonatx/snowy-mac/releases/latest",
+    baseURL + "downloads/Snowy-macOS-arm64.dmg",
   );
-  // Keep the check on this page instead of opening GitHub in a second tab.
+  assert.ok(
+    await p.evaluate('document.querySelector("#download").hasAttribute("download")'),
+    "The link saves the disk image instead of navigating",
+  );
+  const served = await p.evaluate(
+    'fetch(document.querySelector("#download").href).then(async r => ({ ok: r.ok, type: r.headers.get("content-type"), size: (await r.arrayBuffer()).byteLength }))',
+  );
+  assert.ok(
+    served.ok && served.size > 1_000_000,
+    "The disk image is served: " + JSON.stringify(served),
+  );
+  // Keep the check from saving a real file from the headless browser.
   await p.evaluate(
     'document.querySelector("#download").addEventListener("click", event => event.preventDefault(), { once: true }); true',
   );
