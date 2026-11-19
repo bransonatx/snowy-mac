@@ -10,7 +10,7 @@ test("the Download button points at a disk image this site ships", async () => {
   const page = await readFile(resolve(root, "index.html"), "utf8");
   const link = page.match(/<a\s+id="download"[^>]*>/)?.[0] ?? "";
   const href = link.match(/href="([^"]+)"/)?.[1];
-  assert.equal(href, "./downloads/Snowy-macOS-arm64.dmg");
+  assert.equal(href, "./downloads/Slush-macOS-arm64.dmg");
   assert.match(link, /\sdownload[\s>]/, "the link saves the file");
 
   const file = resolve(root, href);
@@ -27,7 +27,7 @@ test("the Download button points at a disk image this site ships", async () => {
 });
 
 test("the update feed on the site describes the app in this repository", async () => {
-  const site = "https://snowy-thaw.vercel.app/downloads/";
+  const site = "https://slush-desktop.vercel.app/downloads/";
   const plist = await readFile(resolve(root, "../App/Info.plist"), "utf8");
   const setting = (key) =>
     plist.match(new RegExp(`<key>${key}</key><string>([^<]*)</string>`))?.[1];
@@ -43,10 +43,20 @@ test("the update feed on the site describes the app in this repository", async (
   );
   assert.equal(feed.match(/<sparkle:version>([^<]*)</)?.[1], setting("CFBundleVersion"));
   const enclosure = feed.match(/<enclosure [^>]*>/)?.[0] ?? "";
-  assert.equal(enclosure.match(/url="([^"]*)"/)?.[1], site + "Snowy-macOS-arm64.zip");
-  const archive = await stat(resolve(root, "downloads/Snowy-macOS-arm64.zip"));
+  assert.equal(enclosure.match(/url="([^"]*)"/)?.[1], site + "Slush-macOS-arm64.zip");
+  const archive = await stat(resolve(root, "downloads/Slush-macOS-arm64.zip"));
   assert.equal(Number(enclosure.match(/length="(\d+)"/)?.[1]), archive.size);
   assert.match(enclosure, /sparkle:edSignature="[A-Za-z0-9+\/=]{80,}"/);
   // The app sets SURequireSignedFeed, so an unsigned feed would be ignored.
   assert.match(feed, /<!-- sparkle-signatures:/);
+});
+
+test("the site ships the license of the work it redistributes", async () => {
+  const shipped = await readFile(resolve(root, "LICENSE.txt"), "utf8");
+  assert.equal(shipped, await readFile(resolve(root, "../LICENSE"), "utf8"));
+  assert.match(shipped, /MIT License/);
+  const page = await readFile(resolve(root, "index.html"), "utf8");
+  assert.match(page, /href="\.\/LICENSE\.txt"/, "the page links to it");
+  const build = await readFile(resolve(root, "scripts/build.mjs"), "utf8");
+  assert.match(build, /"LICENSE\.txt"/, "the build copies it");
 });

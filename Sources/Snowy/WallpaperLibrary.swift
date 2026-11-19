@@ -159,7 +159,7 @@ actor WallpaperLibrary {
 
     private func libraryDirectory(create: Bool = true) throws -> URL {
         let support = supportDirectory.resolvingSymlinksInPath()
-        let snow = support.appendingPathComponent("Snowy", isDirectory: true)
+        let snow = support.appendingPathComponent("Slush", isDirectory: true)
         let directory = snow.appendingPathComponent("Wallpapers", isDirectory: true)
         for folder in [snow, directory] {
             guard folder.resolvingSymlinksInPath().path == folder.path else { throw LibraryError.unavailable }

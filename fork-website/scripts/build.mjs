@@ -33,6 +33,7 @@ await writeFile(marker, "Snowy static output\n");
 for (const file of [
   "index.html",
   "styles.css",
+  "LICENSE.txt",
   "src",
   "assets",
   "downloads",

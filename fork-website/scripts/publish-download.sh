@@ -8,13 +8,13 @@ set -euo pipefail
 
 site_root="${0:A:h:h}"
 project_root="${site_root:h}"
-site_url="https://snowy-thaw.vercel.app"
+site_url="https://slush-desktop.vercel.app"
 key_account="snowy-fork"
 downloads="$site_root/downloads"
 release_dir="$project_root/build/releases"
 sparkle_bin="$project_root/.build/artifacts/sparkle/Sparkle/bin"
-dmg_name="Snowy-macOS-arm64.dmg"
-zip_name="Snowy-macOS-arm64.zip"
+dmg_name="Slush-macOS-arm64.dmg"
+zip_name="Slush-macOS-arm64.zip"
 
 mode="${1:-}"
 if [[ $# -gt 1 || ($# -eq 1 && "$mode" != "--skip-build") ]]; then
@@ -41,12 +41,12 @@ fi
 
 for tool in generate_keys generate_appcast sign_update; do
   if [[ ! -x "$sparkle_bin/$tool" ]]; then
-    print -u2 "Build Snowy to resolve its pinned Sparkle release tools."
+    print -u2 "Build Slush to resolve its pinned Sparkle release tools."
     exit 1
   fi
 done
 
-app_plist="$project_root/build/Snowy.app/Contents/Info.plist"
+app_plist="$project_root/build/Slush.app/Contents/Info.plist"
 public_key="$("$sparkle_bin/generate_keys" --account "$key_account" -p)"
 if [[ "$(plutil -extract SUPublicEDKey raw "$app_plist")" != "$public_key" ]]; then
   print -u2 "The built app does not carry the public half of the '$key_account' signing key."
@@ -54,7 +54,7 @@ if [[ "$(plutil -extract SUPublicEDKey raw "$app_plist")" != "$public_key" ]]; t
 fi
 version="$(plutil -extract CFBundleShortVersionString raw "$app_plist")"
 
-staging_dir="$(mktemp -d "$release_dir/.Snowy-site.XXXXXX")"
+staging_dir="$(mktemp -d "$release_dir/.Slush-site.XXXXXX")"
 trap 'rm -rf "$staging_dir"' EXIT
 mkdir "$staging_dir/feed"
 cp "$release_dir/$zip_name" "$staging_dir/feed/$zip_name"
@@ -97,5 +97,5 @@ rm -f "$staging_dir/key"
 cp "$release_dir/$dmg_name" "$downloads/$dmg_name"
 cp "$staging_dir/feed/$zip_name" "$downloads/$zip_name"
 cp "$staging_dir/feed/appcast.xml" "$downloads/appcast.xml"
-print "Site downloads now hold Snowy $version: $dmg_name, $zip_name and a signed appcast.xml."
+print "Site downloads now hold Slush $version: $dmg_name, $zip_name and a signed appcast.xml."
 print "Publish them with: vercel deploy --cwd fork-website --prod"

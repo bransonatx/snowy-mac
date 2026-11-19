@@ -11,7 +11,7 @@ final class SnowyWindowController: NSWindowController {
         let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 870, height: 620),
                               styleMask: [.titled, .closable, .resizable],
                               backing: .buffered, defer: false)
-        window.title = "Snowy"
+        window.title = "Slush"
         window.tabbingMode = .disallowed
         window.isReleasedWhenClosed = false
         window.contentMinSize = NSSize(width: 710, height: 500)
@@ -132,7 +132,7 @@ struct SnowyWindowView: View {
                 .buttonStyle(.borderedProminent)
                 .controlSize(.regular)
                 .disabled(!updater.canInstall)
-                .help("Download and install Snowy \(availableVersion)")
+                .help("Download and install Slush \(availableVersion)")
             }
 
             Button {
@@ -149,7 +149,7 @@ struct SnowyWindowView: View {
             }
             .buttonStyle(.bordered)
             .controlSize(.regular)
-            .help("View Snowy release notes")
+            .help("View Slush release notes")
         }
         .padding(.horizontal, 14)
         .padding(.bottom, 12)

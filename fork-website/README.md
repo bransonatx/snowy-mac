@@ -1,6 +1,6 @@
-# Snowy fork website
+# Slush website
 
-The website for this fork of Snowy. It began as a copy of the original site in [`../website`](../website) by Yaroslav Solovev (MIT) and keeps its playable desktop: movable windows, a Dock, and snow you can push around.
+The website for Slush, this fork of Snowy. It began as a copy of the original site in [`../website`](../website) by Yaroslav Solovev (MIT) and keeps its playable desktop: movable windows, a Dock, and snow you can push around.
 
 ## What is different from `../website`
 
@@ -24,7 +24,7 @@ npm --prefix fork-website run build    # static site in fork-website/dist
 
 ## Publish
 
-The site is the Vercel project `snowy-thaw`, live at <https://snowy-thaw.vercel.app>. It is published from this folder with the CLI, not from GitHub:
+The site is the Vercel project `slush-desktop`, live at <https://slush-desktop.vercel.app>. It is published from this folder with the CLI, not from GitHub:
 
 ```sh
 vercel deploy --cwd fork-website --prod
@@ -34,9 +34,9 @@ vercel deploy --cwd fork-website --prod
 
 ## Downloads and updates
 
-`#download` in [`index.html`](index.html) saves [`downloads/Snowy-macOS-arm64.dmg`](downloads), which the site serves itself. A click also shows how to install it and what to do when macOS blocks a build that Apple has not notarized.
+`#download` in [`index.html`](index.html) saves [`downloads/Slush-macOS-arm64.dmg`](downloads), which the site serves itself. A click also shows how to install it and what to do when macOS blocks a build that Apple has not notarized.
 
-The same folder is this fork’s update feed. `App/Info.plist` points `SUFeedURL` at `https://snowy-thaw.vercel.app/downloads/appcast.xml`, and installed copies check it and offer **Update** in the snowflake menu when it lists a newer build. The feed and the update archive are signed with this fork’s own key; the app carries the public half as `SUPublicEDKey`.
+The same folder is this fork’s update feed. `App/Info.plist` points `SUFeedURL` at `https://slush-desktop.vercel.app/downloads/appcast.xml`, and installed copies check it and offer **Update** in the snowflake menu when it lists a newer build. The feed and the update archive are signed with this fork’s own key; the app carries the public half as `SUPublicEDKey`.
 
 To ship a new version:
 
@@ -46,4 +46,4 @@ To ship a new version:
 
 The private signing key lives in the login Keychain of the Mac that created it, under the Sparkle account `snowy-fork`. Keep a backup somewhere safe (`generate_keys --account snowy-fork -x <file>` exports it). If it is lost, installed copies can never accept another update and everyone has to download the app again.
 
-The web address is part of every installed copy, so keep the `snowy-thaw` Vercel project serving `/downloads/appcast.xml` even if the site later moves to another domain.
+The web address is part of every installed copy, so keep the `slush-desktop` Vercel project serving `/downloads/appcast.xml` even if the site later moves to another domain.

@@ -786,7 +786,7 @@ document.querySelector("#terminal-form").addEventListener("submit", (event) => {
   const command = parseCommand(terminalInput.value);
   terminalInput.value = "";
   if (!command.raw) return;
-  terminalLine(`snowy ~ % ${command.raw}`, "command");
+  terminalLine(`slush ~ % ${command.raw}`, "command");
   if (!command.known) {
     terminalLine("Unknown forecast. Try “help”.");
     return;
@@ -797,7 +797,7 @@ document.querySelector("#terminal-form").addEventListener("submit", (event) => {
       terminalLine("clear    Clear this terminal.");
       terminalLine("snow     Make it a flurry.");
       terminalLine("calm     Put the wind down.");
-      terminalLine("about    About Snowy.");
+      terminalLine("about    About Slush.");
       terminalLine("github   Open the source code.");
       terminalLine("thaw     Melt the settled snow, slowly.");
       break;
@@ -818,9 +818,9 @@ document.querySelector("#terminal-form").addEventListener("submit", (event) => {
       break;
     case "about":
       terminalLine(
-        "Snowy is a little winter for your Mac. Free, open source, and entirely unnecessary.",
+        "Slush is a little winter for your Mac. Free, open source, and entirely unnecessary.",
       );
-      terminalLine("This fork adds Thaw Settled Snow. Try “thaw”.");
+      terminalLine("A fork of Snowy that adds Thaw Settled Snow. Try “thaw”.");
       terminalLine("macOS 14+ · Apple silicon");
       break;
     case "github":

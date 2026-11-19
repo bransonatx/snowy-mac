@@ -1,4 +1,6 @@
-# Snowy ❄️
+# Slush ❄️
+
+A fork of [Snowy](https://github.com/soloiaros/snowy-mac) by Yaroslav Solovev, with one addition: **Thaw Settled Snow**.
 
 Snow for your desktop. A native Mac app that lets winter settle on your windows, widgets, and bottom Dock.
 
@@ -8,11 +10,11 @@ Sweep a pile with your pointer. Pick up a shovel. Make a little mess.
 
 ## Get it
 
-Download the latest [Apple Silicon DMG](https://github.com/soloiaros/snowy-mac/releases/latest/download/Snowy-macOS-arm64.dmg), open it, and drag **Snowy.app** onto **Applications**. Eject the disk image, then open Snowy from Applications. On a fresh setup, three quick pages show how to sweep snow, adjust wind, and find the menu-bar controls. Skip or close the walkthrough at any time; it won’t reopen on later launches.
+Download this fork’s [Apple Silicon DMG](https://slush-desktop.vercel.app/downloads/Slush-macOS-arm64.dmg) from [its website](https://slush-desktop.vercel.app), open it, and drag **Slush.app** onto **Applications**. Eject the disk image, then open Slush from Applications. On a fresh setup, three quick pages show how to sweep snow, adjust wind, and find the menu-bar controls. Skip or close the walkthrough at any time; it won’t reopen on later launches.
 
 Requires **macOS 14 or later**. The current download is for Apple Silicon. Intel Macs can build from source. The 0.10.0 beta is signed locally and can trigger Gatekeeper’s malware-verification warning. If macOS blocks the copy you downloaded here, go to **System Settings → Privacy & Security → Open Anyway** after trying to open it.
 
-When a compatible release is available, **Update** appears in blue near the bottom of the snowflake menu. Click it to download, install, and reopen Snowy. To upgrade from 0.9.1 or earlier, quit Snowy and replace it in Applications using the DMG once.
+When a compatible release is available, **Update** appears in blue near the bottom of the snowflake menu. Click it to download, install, and reopen Slush.
 
 ## Let it snow
 
@@ -26,19 +28,19 @@ Click the snowflake in your menu bar to make yourself comfortable:
 
 Snow collects on window tops, widgets, Spotlight, and a bottom-positioned Dock. Moving windows push it around; closing Spotlight lets its uncovered snow fall. Side-positioned Docks are intentionally left out.
 
-Choose **Open Snowy…** in the snowflake menu to apply a wallpaper, select a pixel-art preset, or build your own desktop scene. Props catch snow and can slide when swept. In **Edit Scene**, place individual pieces and attach string lights to the desktop edges and widgets. Finder icon anchors are optional and require Accessibility access. The **Guide** includes **Replay Walkthrough**.
+Choose **Open Slush…** in the snowflake menu to apply a wallpaper, select a pixel-art preset, or build your own desktop scene. Props catch snow and can slide when swept. In **Edit Scene**, place individual pieces and attach string lights to the desktop edges and widgets. Finder icon anchors are optional and require Accessibility access. The **Guide** includes **Replay Walkthrough**.
 
-The desktop stays clickable. Snowy reads public window bounds for snow and widgets. Finder icon anchors use Accessibility only when enabled. Snowy keeps your settings and imported wallpapers on your Mac and checks GitHub for signed updates.
+The desktop stays clickable. Slush reads public window bounds for snow and widgets. Finder icon anchors use Accessibility only when enabled. Slush keeps your settings and imported wallpapers on your Mac and checks GitHub for signed updates.
 
 ## Build it yourself
 
 You’ll need **Xcode 16 or later**, its Metal toolchain, and a Mac.
 
 ```sh
-git clone https://github.com/soloiaros/snowy-mac.git
+git clone -b my-snowy https://github.com/bransonatx/snowy-mac.git
 cd snowy-mac
 ./scripts/build-app.sh
-open build/Snowy.app
+open build/Slush.app
 ```
 
 The build script compiles the app and shaders, adds a local signature, and leaves the app in `build/`. It does not launch or install anything. If Xcode reports a missing Metal toolchain, install it from Xcode’s component settings first.
@@ -71,7 +73,7 @@ npm --prefix fork-website run dev
 
 Window corners and some Dock bounds are estimates because macOS doesn’t expose every visible outline. Custom window shapes and system updates can need adjustments. The app has bounded simulation and rendering budgets, respects Low Power Mode and Reduced Motion, and pauses for sleep or fullscreen content. These are design choices, not a battery-life claim.
 
-If something behaves oddly, [open an issue](https://github.com/soloiaros/snowy-mac/issues) with your macOS version, screen setup, Dock position, and steps to reproduce it.
+If something behaves oddly, [open an issue](https://github.com/bransonatx/snowy-mac/issues) with your macOS version, screen setup, Dock position, and steps to reproduce it.
 
 ## Contributing
 
@@ -86,7 +88,7 @@ The tests run headlessly. They don’t open the app, inspect your desktop, or ru
 
 ## Credits and license
 
-This is a fork of [Snowy](https://github.com/soloiaros/snowy-mac), created by Yaroslav Solovev ([soloiaros](https://github.com/soloiaros)). The app, its physics, rendering, and artwork are the original author’s work. This fork adds **Thaw Settled Snow**. Its updates come from its own signed feed on [its website](fork-website/README.md), so it is never replaced by an original release.
+Slush is a fork of [Snowy](https://github.com/soloiaros/snowy-mac), created by Yaroslav Solovev ([soloiaros](https://github.com/soloiaros)). The app, its physics, rendering, and artwork are the original author’s work. This fork adds **Thaw Settled Snow**. Its updates come from its own signed feed on [its website](fork-website/README.md), so it is never replaced by an original release.
 
 The readable, personal repository style was inspired by [Window Sweaters](https://github.com/saragordic/window-sweaters). Snowy has its own implementation and artwork; it does not include Window Sweaters or JankyBorders code.
 

@@ -421,7 +421,7 @@ async function desktopCheck(run) {
 async function downloadCheck(p) {
   assert.equal(
     await p.evaluate('document.querySelector("#download").href'),
-    baseURL + "downloads/Snowy-macOS-arm64.dmg",
+    baseURL + "downloads/Slush-macOS-arm64.dmg",
   );
   assert.ok(
     await p.evaluate('document.querySelector("#download").hasAttribute("download")'),

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-    <key>CFBundleName</key><string>Snowy</string>
-    <key>CFBundleDisplayName</key><string>Snowy</string>
-    <key>CFBundleExecutable</key><string>Snowy</string>
-    <key>CFBundleIdentifier</key><string>app.snowy.desktop</string>
+    <key>CFBundleName</key><string>Slush</string>
+    <key>CFBundleDisplayName</key><string>Slush</string>
+    <key>CFBundleExecutable</key><string>Slush</string>
+    <key>CFBundleIdentifier</key><string>app.slush.desktop</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleIconFile</key><string>Snowy.icns</string>
+    <key>CFBundleIconFile</key><string>Slush.icns</string>
     <key>CFBundleShortVersionString</key><string>0.11.3</string>
     <key>CFBundleVersion</key><string>18</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
@@ -16,12 +16,12 @@
     <key>UTExportedTypeDeclarations</key>
     <array>
         <dict>
-            <key>UTTypeIdentifier</key><string>app.snowy.desktop.editor-card</string>
-            <key>UTTypeDescription</key><string>Snowy Editor Card</string>
+            <key>UTTypeIdentifier</key><string>app.slush.desktop.editor-card</string>
+            <key>UTTypeDescription</key><string>Slush Editor Card</string>
             <key>UTTypeConformsTo</key><array><string>public.data</string></array>
         </dict>
     </array>
-    <key>SUFeedURL</key><string>https://snowy-thaw.vercel.app/downloads/appcast.xml</string>
+    <key>SUFeedURL</key><string>https://slush-desktop.vercel.app/downloads/appcast.xml</string>
     <key>SUPublicEDKey</key><string>y1TDzHBEFchXrCO0WmEobe6az7NVEpr9vO/N7d/L7/g=</string>
     <key>SURequireSignedFeed</key><true/>
     <key>SUVerifyUpdateBeforeExtraction</key><true/>

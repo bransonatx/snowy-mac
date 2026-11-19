@@ -108,7 +108,7 @@ struct ReleaseNotesSheetView: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Release Notes")
                     .font(.title3.weight(.bold))
-                Text("What's new in Snowy")
+                Text("What's new in Slush")
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
@@ -133,7 +133,7 @@ struct ReleaseNotesSheetView: View {
                 .foregroundStyle(Color.accentColor)
 
             VStack(alignment: .leading, spacing: 2) {
-                Text("Snowy \(version) is available")
+                Text("Slush \(version) is available")
                     .font(.system(size: 13, weight: .semibold))
                 Text("You are currently on version \(cleanVersion(currentVersion))")
                     .font(.system(size: 11))

@@ -84,9 +84,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSM
 
     private func buildMenu() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        item.button?.image = NSImage(systemSymbolName: "snowflake", accessibilityDescription: "Snowy")
+        item.button?.image = NSImage(systemSymbolName: "snowflake", accessibilityDescription: "Slush")
         item.button?.image?.isTemplate = true
-        item.button?.toolTip = "Snowy — desktop snowfall"
+        item.button?.toolTip = "Slush — desktop snowfall"
         statusItem = item
         let menu = NSMenu()
         menu.autoenablesItems = false
@@ -95,13 +95,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSM
         support.target = self
         menu.addItem(support)
         menu.addItem(.separator())
-        let title = NSMenuItem(title: "Snowy", action: nil, keyEquivalent: "")
+        let title = NSMenuItem(title: "Slush", action: nil, keyEquivalent: "")
         title.isEnabled = false
         menu.addItem(title)
         stateItem.isEnabled = false
         menu.addItem(stateItem)
         menu.addItem(.separator())
-        let open = NSMenuItem(title: "Open Snowy…", action: #selector(openSnowyWindow), keyEquivalent: "")
+        let open = NSMenuItem(title: "Open Slush…", action: #selector(openSnowyWindow), keyEquivalent: "")
         open.target = self
         menu.addItem(open)
         menu.addItem(.separator())
@@ -140,7 +140,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSM
         updateItem.isHidden = true
         updateItem.isEnabled = false
         menu.addItem(updateItem)
-        let quit = NSMenuItem(title: "Quit Snowy", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        let quit = NSMenuItem(title: "Quit Slush", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         menu.addItem(quit)
         item.menu = menu
     }
