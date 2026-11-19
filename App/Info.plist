@@ -21,6 +21,8 @@
             <key>UTTypeConformsTo</key><array><string>public.data</string></array>
         </dict>
     </array>
+    <key>SUFeedURL</key><string>https://snowy-thaw.vercel.app/downloads/appcast.xml</string>
+    <key>SUPublicEDKey</key><string>y1TDzHBEFchXrCO0WmEobe6az7NVEpr9vO/N7d/L7/g=</string>
     <key>SURequireSignedFeed</key><true/>
     <key>SUVerifyUpdateBeforeExtraction</key><true/>
     <key>SUSignedFeedFailureExpirationInterval</key><integer>0</integer>

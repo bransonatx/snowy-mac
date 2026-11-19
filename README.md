@@ -86,7 +86,7 @@ The tests run headlessly. They don’t open the app, inspect your desktop, or ru
 
 ## Credits and license
 
-This is a fork of [Snowy](https://github.com/soloiaros/snowy-mac), created by Yaroslav Solovev ([soloiaros](https://github.com/soloiaros)). The app, its physics, rendering, and artwork are the original author’s work. This fork adds **Thaw Settled Snow**. It does not use the original’s update feed, so it stays on the version you install instead of being replaced by an original release.
+This is a fork of [Snowy](https://github.com/soloiaros/snowy-mac), created by Yaroslav Solovev ([soloiaros](https://github.com/soloiaros)). The app, its physics, rendering, and artwork are the original author’s work. This fork adds **Thaw Settled Snow**. Its updates come from its own signed feed on [its website](fork-website/README.md), so it is never replaced by an original release.
 
 The readable, personal repository style was inspired by [Window Sweaters](https://github.com/saragordic/window-sweaters). Snowy has its own implementation and artwork; it does not include Window Sweaters or JankyBorders code.
 

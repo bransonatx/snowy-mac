@@ -14,6 +14,8 @@ const mime = {
   ".webp": "image/webp",
   ".ico": "image/x-icon",
   ".dmg": "application/x-apple-diskimage",
+  ".zip": "application/zip",
+  ".xml": "application/xml; charset=utf-8",
 };
 const port = Number(process.env.PORT || 4174);
 http

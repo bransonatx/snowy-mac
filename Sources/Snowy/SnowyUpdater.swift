@@ -13,8 +13,8 @@ final class SnowyUpdater: NSObject, ObservableObject, SPUUpdaterDelegate {
     @Published private(set) var isUpdating = false
     var onChange: (() -> Void)?
     private var lastProbeTime: TimeInterval = -.infinity
-    /// A build with no feed of its own never looks for updates. This fork ships without one so
-    /// it is not offered the original app's releases, which would replace its changes.
+    /// A build with no feed configured never looks for updates. This fork points at its own
+    /// feed, so it is never offered the original app's releases, which would replace its changes.
     private let hasFeed = Bundle.main.object(forInfoDictionaryKey: "SUFeedURL") is String
 
     init(testVersion: String? = nil) {

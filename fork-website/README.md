@@ -24,15 +24,26 @@ npm --prefix fork-website run build    # static site in fork-website/dist
 
 ## Publish
 
-The folder is ready for Vercel: set the project’s **Root Directory** to `fork-website`. [`vercel.json`](vercel.json) runs the build, serves `dist`, and sets the same security headers the page declares.
+The site is the Vercel project `snowy-thaw`, live at <https://snowy-thaw.vercel.app>. It is published from this folder with the CLI, not from GitHub:
 
-## The download button
+```sh
+vercel deploy --cwd fork-website --prod
+```
+
+[`vercel.json`](vercel.json) runs the build, serves `dist`, and sets the same security headers the page declares.
+
+## Downloads and updates
 
 `#download` in [`index.html`](index.html) saves [`downloads/Snowy-macOS-arm64.dmg`](downloads), which the site serves itself. A click also shows how to install it and what to do when macOS blocks a build that Apple has not notarized.
 
-The disk image is a built copy of this fork’s app, committed here so the site needs nothing else. After changing the app, rebuild it and replace the file from the repository root:
+The same folder is this fork’s update feed. `App/Info.plist` points `SUFeedURL` at `https://snowy-thaw.vercel.app/downloads/appcast.xml`, and installed copies check it and offer **Update** in the snowflake menu when it lists a newer build. The feed and the update archive are signed with this fork’s own key; the app carries the public half as `SUPublicEDKey`.
 
-```sh
-./scripts/package-release.sh
-cp build/releases/Snowy-macOS-arm64.dmg fork-website/downloads/
-```
+To ship a new version:
+
+1. Raise `CFBundleShortVersionString` and `CFBundleVersion` in `App/Info.plist`. Installed copies only see an update with a higher `CFBundleVersion`.
+2. Run `./fork-website/scripts/publish-download.sh` from the repository root. It rebuilds the app, packages it, signs the feed, checks both signatures, and replaces the three files in `downloads/`.
+3. Run `npm --prefix fork-website test`, then publish with `vercel deploy --cwd fork-website --prod`.
+
+The private signing key lives in the login Keychain of the Mac that created it, under the Sparkle account `snowy-fork`. Keep a backup somewhere safe (`generate_keys --account snowy-fork -x <file>` exports it). If it is lost, installed copies can never accept another update and everyone has to download the app again.
+
+The web address is part of every installed copy, so keep the `snowy-thaw` Vercel project serving `/downloads/appcast.xml` even if the site later moves to another domain.

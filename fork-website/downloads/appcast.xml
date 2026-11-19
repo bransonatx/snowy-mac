@@ -1,0 +1,20 @@
+<?xml version="1.0" standalone="yes"?><!-- sparkle-sign-warning:
+IMPORTANT: This file was signed by Sparkle. Any modifications to this file requires re-signing this file with generate_appcast or sign_update! The signed signature will be embedded at the end of this file.
+--><rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+    <channel>
+        <title>Snowy</title>
+        <item>
+            <title>0.11.3</title>
+            <pubDate>Thu, 19 Nov 2026 14:01:31 -0600</pubDate>
+            <link>https://snowy-thaw.vercel.app/</link>
+            <sparkle:version>18</sparkle:version>
+            <sparkle:shortVersionString>0.11.3</sparkle:shortVersionString>
+            <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+            <sparkle:hardwareRequirements>arm64</sparkle:hardwareRequirements>
+            <enclosure url="https://snowy-thaw.vercel.app/downloads/Snowy-macOS-arm64.zip" length="2578097" type="application/octet-stream" sparkle:edSignature="CWSJPRZQYcOQ18Pihux2Du0T1Vwb73icXIz+RjsefXnlf3KCo37Yy7zCR0zZFkSXyM5oBJ6WVWK3Ft8Clu9GDw=="></enclosure>
+        </item>
+    </channel>
+</rss><!-- sparkle-signatures:
+edSignature: rvjrHr/QuhmZz1mt4eCdR2jtVIxOvJs/JqUMS4VCQ4dXoRs9kKuN5APr9ttZU7MTMIEangmz8Qd/HJk7zPR+BA==
+length: 1157
+-->

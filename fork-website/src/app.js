@@ -76,7 +76,7 @@ const windPad = document.querySelector("#wind-pad");
 const windArrow = document.querySelector("#wind-arrow");
 const terminalInput = document.querySelector("#terminal-input");
 const terminalOutput = document.querySelector("#terminal-output");
-const repositoryURL = "https://github.com/bransonatx/snowy-mac";
+const repositoryURL = "https://github.com/bransonatx/snowy-mac/tree/my-snowy";
 
 function persist() {
   savePreferences(storage, preferences);
