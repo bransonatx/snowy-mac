@@ -98,8 +98,11 @@ extension SnowSimulation {
             if let index = hit.drift {
                 // Snowfall recycles without settling while a thaw is melting the caps.
                 if recycleOnContact && isThawing { return true }
-                particle.mass = drifts[index].depositMass(at: hit.position.x - drifts[index].surface.x,
-                                                        mass: particle.mass, snowfall: recycleOnContact)
+                let local = hit.position.x - drifts[index].surface.x
+                // Only leaves fly in fall, and a leaf lands as a layer rather than a point.
+                particle.mass = season == .fall
+                    ? drifts[index].depositLayer(at: local, mass: particle.mass, snowfall: recycleOnContact)
+                    : drifts[index].depositMass(at: local, mass: particle.mass, snowfall: recycleOnContact)
                 meshDirty = true
                 if particle.mass <= 0.0001 { return true }
                 // A full patch spills sideways; it does not silently destroy carried mass.

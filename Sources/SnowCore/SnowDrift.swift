@@ -115,6 +115,41 @@ public final class SnowDrift {
         return remaining
     }
 
+    /// Fall: a landed leaf joins the pile as a wide, shallow layer. Dropped on one sample, a
+    /// leaf's area made a spike that pushed resting leaves up and let them sink again as it
+    /// levelled out, which showed as flicker along the pile tops. Returns mass that did not fit.
+    func depositLayer(at localX: Float, mass: Float, snowfall: Bool = false) -> Float {
+        guard mass.isFinite, mass > 0 else { return 0 }
+        guard localX >= 0, localX <= surface.width, spacing > 0 else { return mass }
+        let centre = max(0, min(heights.count - 1, Int((localX / spacing).rounded())))
+        if snowfall && (!surface.isSnowExposed(at: localX) || cornerWind[centre].clear) { return mass }
+        // A tent wide enough that an ordinary leaf raises the pile by about a quarter of a point
+        // at its peak. No sample ever takes more than `step` at once, so a nearly full stretch
+        // cannot be topped up in a lump either; what does not fit is handed back.
+        let reach = max(40, min(120, mass / 0.3))
+        let step: Float = 0.3
+        let span = max(1, Int(reach / spacing))
+        let low = max(0, centre - span), high = min(heights.count - 1, centre + span)
+        func room(_ i: Int) -> Float {
+            let x = Float(i) * spacing
+            guard surface.isExposed(at: x) else { return 0 }
+            if snowfall && (!surface.isSnowExposed(at: x) || cornerWind[i].clear) { return 0 }
+            return max(0, (snowfall ? snowfallCapacities[i] : capacities[i]) - heights[i]) * spacing
+        }
+        func weight(_ i: Int) -> Float { 1 - Float(abs(i - centre)) / Float(span + 1) }
+        var total: Float = 0
+        for i in low...high where room(i) > 0 { total += weight(i) }
+        guard total > 0 else { return mass }
+        var remaining = mass
+        for i in low...high {
+            let accepted = min(room(i), mass * weight(i) / total, step * spacing)
+            guard accepted > 0 else { continue }
+            heights[i] += accepted / spacing
+            remaining -= accepted
+        }
+        return remaining <= 0.0001 ? 0 : remaining
+    }
+
     func settle() {
         // Pairwise transfers preserve volume, including when adjacent samples are full.
         for i in heights.indices { scratch[i] = heights[i] }

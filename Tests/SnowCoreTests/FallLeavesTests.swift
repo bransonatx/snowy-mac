@@ -157,6 +157,58 @@ final class FallLeavesTests: XCTestCase {
         }
     }
 
+    /// Counts resting leaves that dim or disappear between rebuilds. A pile nobody touches
+    /// only ever gains leaves, so every such event is a visible flicker.
+    private func flickers(in simulation: SnowSimulation, seconds: Float, from start: Float = 0,
+                          cursor: (Float) -> SIMD2<Float>? = { _ in nil }) -> Int {
+        var previous: [String: Float] = [:]
+        var revision = simulation.meshRevision
+        var events = 0
+        let dt: Float = 1 / 30
+        for frame in 0..<Int((seconds / dt).rounded()) {
+            let time = Float(frame) * dt
+            simulation.step(dt: dt, cursor: cursor(time))
+            guard simulation.meshRevision != revision else { continue }
+            revision = simulation.meshRevision
+            var now: [String: Float] = [:]
+            for leaf in simulation.pileLeaves { now["\(leaf.position.x),\(leaf.look)"] = leaf.opacity }
+            if time >= start {
+                for (key, opacity) in previous {
+                    if let current = now[key] { if current < opacity - 0.05 { events += 1 } }
+                    else if opacity > 0.3 { events += 1 }
+                }
+            }
+            previous = now
+        }
+        return events
+    }
+
+    func testLandingLeavesDoNotMakeRestingLeavesFlicker() {
+        let simulation = simulation(flakes: 900)
+        simulation.updateSurfaces([Surface(id: DesktopSceneBuilder.groundID, x: 0, y: 800, width: 1000),
+                                   Surface(id: 1, x: 100, y: 300, width: 400),
+                                   Surface(id: 2, x: 600, y: 450, width: 300)])
+        simulation.gustClock = 1e9   // gusts carry leaves off on purpose
+        // Leaves land all the while the piles build. Each one used to raise a spike that pushed
+        // a few resting leaves up and let them sink again: hundreds of events in this stretch.
+        XCTAssertLessThanOrEqual(flickers(in: simulation, seconds: 45), 3)
+        XCTAssertGreaterThan(simulation.pileLeaves.count, 200)
+    }
+
+    func testSweptLeavesLandWithoutMakingThePileFlicker() {
+        let simulation = simulation(flakes: 0)
+        simulation.updateSurfaces([Surface(id: DesktopSceneBuilder.groundID, x: 0, y: 800, width: 1000),
+                                   Surface(id: 1, x: 100, y: 300, width: 400)])
+        simulation.gustClock = 1e9
+        for drift in simulation.drifts { for i in drift.heights.indices { drift.heights[i] = 7 } }
+        simulation.rebuildMesh()
+        // One glove pass along the window's pile, then hands off while the leaves come down.
+        let events = flickers(in: simulation, seconds: 14, from: 2.2) { time in
+            time >= 1 && time < 1.6 ? SIMD2(110 + (time - 1) / 0.6 * 380, 295) : nil
+        }
+        XCTAssertLessThanOrEqual(events, 3)
+    }
+
     func testBlowerLiftsLeavesOnlyWhileThePointerMoves() {
         let still = simulation(flakes: 0)
         pile(on: still)
