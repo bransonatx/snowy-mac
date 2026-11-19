@@ -59,6 +59,14 @@ npm --prefix website run dev
 
 Open the address printed by the server. To make the static site, run `npm --prefix website run build`; the result goes into `website/dist/`. See the [Cloudflare deployment guide](website/docs/deployment.md) to publish it.
 
+### This fork’s website
+
+[`fork-website/`](fork-website/README.md) is this fork’s own copy of that desktop. It adds a working Thaw, links to this fork, credits the original, and has no payments. `website/` stays exactly as the original ships it.
+
+```sh
+npm --prefix fork-website run dev
+```
+
 ## A few rough edges
 
 Window corners and some Dock bounds are estimates because macOS doesn’t expose every visible outline. Custom window shapes and system updates can need adjustments. The app has bounded simulation and rendering budgets, respects Low Power Mode and Reduced Motion, and pauses for sleep or fullscreen content. These are design choices, not a battery-life claim.
