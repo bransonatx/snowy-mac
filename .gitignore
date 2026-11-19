@@ -22,3 +22,8 @@ website/.sites-checkout-*/
 
 windows/**/bin/
 windows/**/obj/
+
+# Seasons website: the DMG is copied in at publish time, not committed.
+site/*.dmg
+.vercel/
+site/.vercel/

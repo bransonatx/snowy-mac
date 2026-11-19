@@ -1,0 +1,2 @@
+# Present so the Vercel CLI uploads the staged DMG, which the repository .gitignore leaves out.
+.vercel

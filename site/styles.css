@@ -1,0 +1,210 @@
+/* Seasons website. A small Mac desktop on an autumn afternoon; see app.js for the weather. */
+:root {
+  --ink: #2a1d16;
+  --ink-soft: #6b584c;
+  --paper: rgba(251, 247, 241, 0.9);
+  --line: rgba(60, 32, 14, 0.14);
+  --accent: #c94f18;
+  --accent-deep: #a83e10;
+  --bar: rgba(250, 240, 226, 0.62);
+  --hill-far: #b98f6a;
+  --hill-mid: #96592f;
+  --hill-near: #5a3220;
+  --ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", "Segoe UI", sans-serif;
+  --serif: ui-serif, "New York", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --bar-h: 30px;
+}
+body[data-season="winter"] {
+  --ink: #17263a;
+  --ink-soft: #52657c;
+  --paper: rgba(246, 250, 253, 0.9);
+  --line: rgba(14, 40, 70, 0.16);
+  --accent: #2274c9;
+  --accent-deep: #185ca6;
+  --bar: rgba(226, 238, 250, 0.6);
+  --hill-far: #3f6a94;
+  --hill-mid: #7ea3c4;
+  --hill-near: #dfeaf4;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font: 14px/1.5 var(--ui);
+  color: var(--ink);
+  background: #6d92b7;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+[hidden] { display: none !important; }
+body[data-season="fall"] .winter-only,
+body[data-season="winter"] .fall-only { display: none !important; }
+
+/* Wallpaper */
+.sky { position: fixed; inset: 0; transition: opacity 0.7s ease; }
+.sky-fall {
+  background:
+    radial-gradient(60vmax 42vmax at 86% 74%, rgba(255, 224, 172, 0.72), rgba(255, 224, 172, 0) 62%),
+    linear-gradient(115deg, #6d92b7 0%, #9fb0bd 46%, #d9cfbb 80%, #ecd9b6 100%);
+}
+.sky-winter {
+  opacity: 0;
+  background:
+    radial-gradient(34vmax 30vmax at 80% 22%, rgba(190, 220, 250, 0.3), rgba(190, 220, 250, 0) 60%),
+    linear-gradient(115deg, #0e2540 0%, #173a5e 55%, #2a5278 100%);
+}
+body[data-season="winter"] .sky-winter { opacity: 1; }
+.hills { position: fixed; left: 0; right: 0; bottom: 0; width: 100%; height: 34vh; }
+.hill { transition: fill 0.7s ease; }
+.hill.far { fill: var(--hill-far); opacity: 0.55; }
+.hill.mid { fill: var(--hill-mid); opacity: 0.7; }
+.hill.near { fill: var(--hill-near); }
+
+#weather { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 900; pointer-events: none; }
+
+/* Menu bar */
+.menubar {
+  position: fixed; top: 0; left: 0; right: 0; height: var(--bar-h); z-index: 1000;
+  display: flex; align-items: center; gap: 2px; padding: 0 14px;
+  background: var(--bar);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25);
+  font-size: 13.5px;
+  user-select: none; -webkit-user-select: none;
+}
+.brand { display: inline-flex; align-items: center; gap: 7px; font-weight: 700; margin-right: 10px; }
+.glyph { width: 15px; height: 15px; color: var(--accent); }
+body[data-season="fall"] .glyph-flake, body[data-season="winter"] .glyph-leaf { display: none; }
+.menu { position: relative; }
+.menu-title {
+  font: inherit; color: inherit; background: none; border: 0; border-radius: 5px;
+  padding: 3px 10px; cursor: default;
+}
+.menu-title:hover, .menu-title[aria-expanded="true"] { background: rgba(0, 0, 0, 0.1); }
+.menu-list {
+  position: absolute; top: calc(100% + 5px); left: 0; margin: 0; padding: 5px; list-style: none; min-width: 190px;
+  background: rgba(252, 249, 245, 0.96); border: 1px solid var(--line); border-radius: 9px;
+  box-shadow: 0 14px 38px rgba(30, 16, 8, 0.28);
+}
+.menu-list button {
+  width: 100%; text-align: left; font: inherit; color: var(--ink); background: none; border: 0; border-radius: 5px;
+  padding: 4px 10px 4px 26px; position: relative; cursor: default;
+}
+.menu-list button:hover, .menu-list button:focus-visible { background: var(--accent); color: #fff; outline: none; }
+.menu-list button[aria-checked="true"]::before { content: "✓"; position: absolute; left: 9px; font-weight: 700; }
+.clock { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+/* Windows */
+.desktop { position: fixed; inset: var(--bar-h) 0 0 0; }
+.win {
+  position: absolute; z-index: 10;
+  background: var(--paper);
+  -webkit-backdrop-filter: blur(26px) saturate(1.4); backdrop-filter: blur(26px) saturate(1.4);
+  border: 1px solid var(--line); border-radius: 12px;
+  box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.5) inset, 0 22px 60px rgba(40, 22, 10, 0.34), 0 2px 8px rgba(40, 22, 10, 0.16);
+  transition: background-color 0.7s ease;
+}
+.win.dragging { box-shadow: 0 0 0 0.5px rgba(255, 255, 255, 0.5) inset, 0 34px 80px rgba(40, 22, 10, 0.42), 0 3px 10px rgba(40, 22, 10, 0.2); }
+#win-about { width: 420px; left: calc(50% - 210px); top: 17%; }
+#win-readme { width: 304px; left: max(22px, calc(50% - 210px - 348px)); top: 11%; }
+#win-yard { width: 304px; left: min(calc(100% - 326px), calc(50% + 210px + 44px)); top: 27%; }
+
+.titlebar {
+  position: relative; height: 38px; display: flex; align-items: center; justify-content: center;
+  border-bottom: 1px solid var(--line); cursor: grab; touch-action: none;
+  user-select: none; -webkit-user-select: none;
+}
+.dragging .titlebar { cursor: grabbing; }
+.titlebar h2 { margin: 0; font-size: 13px; font-weight: 600; color: var(--ink-soft); }
+.lights { position: absolute; left: 13px; display: flex; gap: 8px; }
+.lights i { width: 12px; height: 12px; border-radius: 50%; background: #d8cdc2; box-shadow: inset 0 0 0 0.5px rgba(0, 0, 0, 0.14); }
+.win.front .lights i:nth-child(1) { background: #ff5f57; }
+.win.front .lights i:nth-child(2) { background: #febc2e; }
+.win.front .lights i:nth-child(3) { background: #28c840; }
+.body { padding: 18px 20px 20px; }
+.body p { margin: 0 0 12px; }
+.body p:last-child { margin-bottom: 0; }
+.quiet { color: var(--ink-soft); font-size: 13px; }
+
+/* About */
+.about { text-align: center; padding: 22px 28px 20px; }
+.app-icon { display: block; margin: 0 auto 2px; filter: drop-shadow(0 8px 14px rgba(60, 30, 10, 0.28)); }
+h1 { margin: 0; font: 600 54px/1.050 var(--serif); letter-spacing: -0.02em; }
+.tagline { margin: 10px 0 20px !important; font-size: 17px; line-height: 1.4; color: var(--ink-soft); }
+.primary {
+  display: inline-block; padding: 12px 26px; border-radius: 11px;
+  background: linear-gradient(180deg, var(--accent), var(--accent-deep));
+  color: #fff; font-size: 16px; font-weight: 600; text-decoration: none;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.28) inset, 0 6px 16px rgba(120, 50, 10, 0.28);
+  transition: transform 0.12s ease, filter 0.12s ease;
+}
+.primary:hover { filter: brightness(1.070); }
+.primary:active { transform: scale(0.975); }
+.meta { margin: 14px 0 0 !important; font-size: 12.500px; color: var(--ink-soft); }
+.credit { margin: 16px 0 0 !important; padding-top: 12px; border-top: 1px solid var(--line); font-size: 12px; color: var(--ink-soft); }
+a { color: var(--accent-deep); }
+:focus-visible { outline: 3px solid color-mix(in srgb, var(--accent) 60%, white); outline-offset: 2px; }
+
+/* Read-me note */
+.note ol { margin: 0 0 12px; padding-left: 20px; }
+.note li { margin-bottom: 7px; }
+.note li::marker { color: var(--accent-deep); font-weight: 700; }
+
+/* Try it */
+.field { margin-bottom: 14px; }
+.label { display: block; font-size: 11.500px; font-weight: 600; color: var(--ink-soft); margin-bottom: 5px; }
+.segmented { display: flex; padding: 2px; border-radius: 8px; background: rgba(60, 32, 14, 0.09); }
+.segmented button {
+  flex: 1; font: inherit; font-size: 13px; color: var(--ink); background: none; border: 0; border-radius: 6px;
+  padding: 5px 6px; cursor: default; white-space: nowrap;
+}
+.segmented button[aria-pressed="true"] { background: #fff; box-shadow: 0 1px 3px rgba(40, 22, 10, 0.22); font-weight: 600; }
+#tool-hint { margin: 7px 0 0; min-height: 2.900em; }
+.row { display: flex; gap: 8px; }
+.plain {
+  flex: 1; font: inherit; font-size: 13px; color: var(--ink); background: #fff; border: 1px solid var(--line);
+  border-radius: 7px; padding: 6px 8px; cursor: default; box-shadow: 0 1px 1.500px rgba(40, 22, 10, 0.1);
+}
+.plain:active { background: #f1ebe4; }
+
+/* Dock */
+.dock {
+  position: fixed; left: 50%; bottom: 12px; transform: translateX(-50%); z-index: 800;
+  display: flex; gap: 10px; padding: 8px 10px;
+  background: rgba(255, 250, 243, 0.34);
+  -webkit-backdrop-filter: blur(22px) saturate(1.5); backdrop-filter: blur(22px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 20px;
+  box-shadow: 0 14px 34px rgba(40, 22, 10, 0.3);
+}
+.tile {
+  position: relative; width: 50px; height: 50px; padding: 0; border: 0; border-radius: 12px; background: none;
+  display: grid; place-items: center; color: #fff; cursor: default; transition: transform 0.14s ease;
+}
+.tile:hover { transform: translateY(-4px); }
+.tile:active { transform: translateY(-1px) scale(0.96); }
+.tile img { display: block; width: 50px; height: 50px; }
+.tile svg { width: 26px; height: 26px; }
+.tile-get { background: linear-gradient(180deg, #4d9fe6, #2a6fc0); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35); }
+.tile-gust { background: linear-gradient(180deg, #8d9aa6, #5c6975); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3); }
+.tile::after {
+  content: attr(data-tip); position: absolute; bottom: calc(100% + 14px); left: 50%; transform: translateX(-50%);
+  padding: 3px 9px; border-radius: 6px; background: rgba(40, 26, 18, 0.86); color: #fff; font-size: 12px; white-space: nowrap;
+  opacity: 0; pointer-events: none; transition: opacity 0.12s ease;
+}
+.tile:hover::after, .tile:focus-visible::after { opacity: 1; }
+
+/* Small screens: the windows stack and the page scrolls. */
+@media (max-width: 1039px), (max-height: 619px) {
+  body { overflow: auto; }
+  .desktop { position: static; padding: calc(var(--bar-h) + 64px) 16px 150px; display: flex; flex-direction: column; align-items: center; gap: 64px; }
+  .win, #win-about, #win-readme, #win-yard { position: relative; left: auto !important; top: auto !important; width: min(100%, 440px); }
+  #win-about { order: -1; }
+  .titlebar { cursor: default; touch-action: auto; }
+  h1 { font-size: 46px; }
+  .clock { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sky, .hill, .win, .tile, .primary { transition: none; }
+}

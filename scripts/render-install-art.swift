@@ -43,46 +43,56 @@ func label(_ text: String, at point: CGPoint, size: CGFloat, ink: CGColor,
     c.restoreGState()
 }
 func background(_ c: CGContext) {
-    c.drawLinearGradient(gradient([color(0x234f75), color(0x102c4c), color(0x091c32)]),
+    // Late-afternoon autumn: bark brown at the edges, an amber glow where the title sits.
+    c.drawLinearGradient(gradient([color(0x7a3d1c), color(0x3b1d13), color(0x1c0f0c)]),
                          start: CGPoint(x: 0, y: 0), end: CGPoint(x: 650, y: 450), options: [.drawsAfterEndLocation])
-    c.drawRadialGradient(gradient([color(0x87b9e0, 0.20), color(0x87b9e0, 0)]),
+    c.drawRadialGradient(gradient([color(0xf4a63c, 0.26), color(0xf4a63c, 0)]),
                          startCenter: CGPoint(x: 130, y: 45), startRadius: 0,
-                         endCenter: CGPoint(x: 130, y: 45), endRadius: 320, options: [])
-    // A restrained Aqua arc and two distant, faceted ridges echo the desktop.
-    c.setStrokeColor(color(0x86bfee, 0.20)); c.setLineWidth(1.2)
-    c.move(to: CGPoint(x: -35, y: 320))
-    c.addCurve(to: CGPoint(x: 690, y: 88), control1: CGPoint(x: 196, y: 177), control2: CGPoint(x: 418, y: 120))
-    c.strokePath()
-    for (ridge, ink) in [
-        ([(0, 370),(96, 330),(170, 366),(241, 309),(335, 366),(435, 316),(534, 365),(602, 334),(660, 355)], color(0x5683a9, 0.19)),
-        ([(0, 411),(97, 368),(205, 416),(311, 368),(410, 400),(525, 358),(660, 403)], color(0x071a2c, 0.40))
+                         endCenter: CGPoint(x: 130, y: 45), endRadius: 330, options: [])
+    // Two soft hills at the foot of the window.
+    for (hill, ink) in [
+        ([(0, 372), (150, 338), (330, 366), (500, 330), (660, 356)], color(0xc9692a, 0.16)),
+        ([(0, 408), (170, 372), (340, 404), (520, 370), (660, 398)], color(0x120907, 0.45))
     ] {
         c.setFillColor(ink); c.beginPath(); c.move(to: CGPoint(x: 0, y: 440))
-        for (x, y) in ridge { c.addLine(to: CGPoint(x: x, y: y)) }
+        c.addLine(to: CGPoint(x: hill[0].0, y: hill[0].1))
+        for index in 1..<hill.count {
+            let from = hill[index - 1], to = hill[index]
+            let mid = CGFloat(from.0 + to.0) / 2
+            c.addCurve(to: CGPoint(x: to.0, y: to.1), control1: CGPoint(x: mid, y: CGFloat(from.1)),
+                       control2: CGPoint(x: mid, y: CGFloat(to.1)))
+        }
         c.addLine(to: CGPoint(x: 660, y: 440)); c.closePath(); c.fillPath()
     }
-    for index in 0..<66 {
+    // Drifting leaves, kept clear of the title and the two Finder icons.
+    let inks: [UInt32] = [0xf4a63c, 0xe2742a, 0xd6501a, 0xf2c14e, 0xb5391a]
+    for index in 0..<58 {
         let x = CGFloat((index * 113 + 29) % 653)
         let y = CGFloat((index * 73 + 51) % 426)
-        if (x < 350 && y < 125) || (y > 337 && x > 110 && x < 550) { continue }
-        let size: CGFloat = index.isMultiple(of: 9) ? 2.8 : 1.5
-        c.setFillColor(color(0xcce7ff, index.isMultiple(of: 9) ? 0.55 : 0.25))
-        c.fillEllipse(in: CGRect(x: x, y: y, width: size, height: size))
+        if (x < 360 && y < 130) || (y > 150 && y < 330 && x > 90 && x < 570) || (y > 337 && x > 110 && x < 550) { continue }
+        let large = index.isMultiple(of: 4)
+        let length: CGFloat = large ? 11 : 6.5
+        c.saveGState(); c.translateBy(x: x, y: y); c.rotate(by: CGFloat(index) * 0.83)
+        c.setFillColor(color(inks[index % inks.count], large ? 0.72 : 0.42))
+        c.move(to: CGPoint(x: 0, y: -length))
+        c.addQuadCurve(to: CGPoint(x: 0, y: length), control: CGPoint(x: length * 0.95, y: 0))
+        c.addQuadCurve(to: CGPoint(x: 0, y: -length), control: CGPoint(x: -length * 0.95, y: 0))
+        c.fillPath(); c.restoreGState()
     }
-    label("Snowy", at: CGPoint(x: 48, y: 79), size: 47, ink: color(0xf8fcff), medium: true, in: c)
-    label("A little winter for your Mac.", at: CGPoint(x: 50, y: 109), size: 17, ink: color(0xc4def1), in: c)
-    c.setStrokeColor(color(0xc4def1, 0.23)); c.setLineWidth(1)
+    label("Seasons", at: CGPoint(x: 48, y: 79), size: 47, ink: color(0xfff6ea), medium: true, in: c)
+    label("Leaves in fall. Snow in winter.", at: CGPoint(x: 50, y: 109), size: 17, ink: color(0xf1cfa6), in: c)
+    c.setStrokeColor(color(0xf1cfa6, 0.25)); c.setLineWidth(1)
     c.move(to: CGPoint(x: 49, y: 135)); c.addLine(to: CGPoint(x: 611, y: 135)); c.strokePath()
-    label("Drag Snowy to Applications", at: CGPoint(x: 330, y: 168), size: 17,
-          ink: color(0xe8f5ff), medium: true, centered: true, in: c)
-    c.setStrokeColor(color(0xbce4ff, 0.78)); c.setLineWidth(3); c.setLineCap(.round); c.setLineJoin(.round)
+    label("Drag Seasons to Applications", at: CGPoint(x: 330, y: 168), size: 17,
+          ink: color(0xfff1df), medium: true, centered: true, in: c)
+    c.setStrokeColor(color(0xf7c98a, 0.82)); c.setLineWidth(3); c.setLineCap(.round); c.setLineJoin(.round)
     c.move(to: CGPoint(x: 285, y: 240)); c.addLine(to: CGPoint(x: 374, y: 240))
     c.move(to: CGPoint(x: 359, y: 226)); c.addLine(to: CGPoint(x: 374, y: 240))
     c.addLine(to: CGPoint(x: 359, y: 254)); c.strokePath()
-    label("Then open Snowy from Applications.", at: CGPoint(x: 330, y: 361), size: 15,
-          ink: color(0xe8f5ff), centered: true, in: c)
+    label("Then open Seasons from Applications.", at: CGPoint(x: 330, y: 361), size: 15,
+          ink: color(0xfff1df), centered: true, in: c)
     label("macOS 14 or later", at: CGPoint(x: 330, y: 396), size: 12,
-          ink: color(0xb4cde2), centered: true, in: c)
+          ink: color(0xdcb48c), centered: true, in: c)
 }
 func icon(_ c: CGContext, size: CGFloat) {
     c.scaleBy(x: size / 1024, y: size / 1024)
@@ -122,7 +132,7 @@ let output = URL(fileURLWithPath: arguments[2], isDirectory: true)
 switch arguments[1] {
 case "background":
     for scale in [1, 2] {
-        try render(660, 440, scale: scale, to: output.appendingPathComponent(scale == 1 ? "Snowy.png" : "Snowy@2x.png"), draw: background)
+        try render(660, 440, scale: scale, to: output.appendingPathComponent(scale == 1 ? "Seasons.png" : "Seasons@2x.png"), draw: background)
     }
 case "icon":
     for size in [16, 32, 128, 256, 512] {

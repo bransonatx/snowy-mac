@@ -44,6 +44,12 @@ Seasons adds a second season to Snowy's winter. From the September equinox to th
 
 Winter is unchanged. Switching season clears what has settled. In-app updates are turned off in Seasons so it does not replace itself with Snowy's releases.
 
+### Seasons installer and website
+
+`./scripts/package-release.sh` packages `build/Seasons.app` into `build/releases/Seasons-macOS-arm64.dmg`. The build is signed locally and not notarized, so a Mac that downloads it asks for **System Settings → Privacy & Security → Open Anyway** on first launch.
+
+`site/` is the Seasons website: a small desktop where leaves fall and pile on the page's own windows, with the download in the middle. It is plain HTML, CSS and JavaScript with no build step. `./scripts/stage-site.sh` copies the DMG into `site/` (it is not committed). The `website/` folder is still upstream Snowy's site and is not used by Seasons.
+
 ## Build it yourself
 
 You’ll need **Xcode 16 or later**, its Metal toolchain, and a Mac.
