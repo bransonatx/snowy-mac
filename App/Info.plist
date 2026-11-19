@@ -21,8 +21,6 @@
             <key>UTTypeConformsTo</key><array><string>public.data</string></array>
         </dict>
     </array>
-    <key>SUFeedURL</key><string>https://github.com/soloiaros/snowy-mac/releases/latest/download/appcast.xml</string>
-    <key>SUPublicEDKey</key><string>CpsBI13OBwIG3LPiEl2Rlo4M0BrynW+FhM8ScbL6/0Q=</string>
     <key>SURequireSignedFeed</key><true/>
     <key>SUVerifyUpdateBeforeExtraction</key><true/>
     <key>SUSignedFeedFailureExpirationInterval</key><integer>0</integer>
