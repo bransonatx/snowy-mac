@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
-    <key>CFBundleName</key><string>Snowy</string>
-    <key>CFBundleDisplayName</key><string>Snowy</string>
-    <key>CFBundleExecutable</key><string>Snowy</string>
-    <key>CFBundleIdentifier</key><string>app.snowy.desktop</string>
+    <key>CFBundleName</key><string>Seasons</string>
+    <key>CFBundleDisplayName</key><string>Seasons</string>
+    <key>CFBundleExecutable</key><string>Seasons</string>
+    <key>CFBundleIdentifier</key><string>app.seasons.desktop</string>
     <key>CFBundlePackageType</key><string>APPL</string>
-    <key>CFBundleIconFile</key><string>Snowy.icns</string>
+    <key>CFBundleIconFile</key><string>Seasons.icns</string>
     <key>CFBundleShortVersionString</key><string>0.11.3</string>
     <key>CFBundleVersion</key><string>18</string>
     <key>LSMinimumSystemVersion</key><string>14.0</string>
@@ -16,8 +16,8 @@
     <key>UTExportedTypeDeclarations</key>
     <array>
         <dict>
-            <key>UTTypeIdentifier</key><string>app.snowy.desktop.editor-card</string>
-            <key>UTTypeDescription</key><string>Snowy Editor Card</string>
+            <key>UTTypeIdentifier</key><string>app.seasons.desktop.editor-card</string>
+            <key>UTTypeDescription</key><string>Seasons Editor Card</string>
             <key>UTTypeConformsTo</key><array><string>public.data</string></array>
         </dict>
     </array>

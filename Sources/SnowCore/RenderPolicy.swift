@@ -44,6 +44,13 @@ public struct SimulationBudget: Sendable {
     /// Reuse the previous transport allocation as a bounded granular pool, without particle blobs.
     public var maximumGranules: Int { min(cells * 8, debris * 128) }
     public var maximumSnowVertices: Int { (cells + maximumGranules) * 12 }
+    /// Leaves are larger than flakes, so far fewer of them fill the same sky.
+    public var fallingLeaves: Int { flakes / 6 }
+    /// Leaves lifted off a pile by the blower, a sweep, a moving window, or a gust.
+    public var blownLeaves: Int { cells / 8 }
+    /// Resting leaves drawn on the piles; the pile coarsens rather than exceed this.
+    public var pileLeaves: Int { cells }
+    public var maximumAirborneLeaves: Int { fallingLeaves + blownLeaves }
 
     public init(flakes: Int = 350, debris: Int = 96, cells: Int = 4096, surfaces: Int = 48) {
         self.flakes = max(0, min(900, flakes))

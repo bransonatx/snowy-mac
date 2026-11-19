@@ -37,7 +37,16 @@ extension SnowSimulation {
                 } else { elevatedMeshRanges.append(start..<mesh.count) }
             }
         }
-        contour.append(field: looseSnow, to: &mesh, limit: budget.maximumSnowVertices)
+        if season == .fall {
+            // Loose leaves fly as particles, so there is no granular outline to draw.
+            rebuildPileLeaves()
+        } else {
+            contour.append(field: looseSnow, to: &mesh, limit: budget.maximumSnowVertices)
+            if !pileLeaves.isEmpty {
+                pileLeaves.removeAll(keepingCapacity: true)
+                elevatedPileLeafCount = 0
+            }
+        }
         meshRevision &+= 1
         meshDirty = false
         interactionDirty = false

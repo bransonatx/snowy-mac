@@ -30,6 +30,20 @@ Choose **Open Snowy…** in the snowflake menu to apply a wallpaper, select a pi
 
 The desktop stays clickable. Snowy reads public window bounds for snow and widgets. Finder icon anchors use Accessibility only when enabled. Snowy keeps your settings and imported wallpapers on your Mac and checks GitHub for signed updates.
 
+## Seasons
+
+This branch builds a second, separate app called **Seasons** (`build/Seasons.app`, app ID `app.seasons.desktop`). It keeps its own settings and wallpapers, so it can sit next to the original snow-only Snowy without the two sharing anything. The `my-snowy` branch still builds `build/Snowy.app`.
+
+Seasons adds a second season to Snowy's winter. From the September equinox to the December solstice the snowflake becomes a leaf and leaves fall instead of snow; **Season** in the menu overrides the calendar.
+
+- Leaves pile up on the same windows, widgets, Dock, and floor as snow, and ride a dragged window the same way.
+- Leaves are light. Sweeping a pile with the **Glove** or **Rake**, or ploughing a window through it, sends its leaves into the air to settle wherever they land.
+- **Cursor Tool → Leaf Blower** works from a distance: sweep the pointer past a pile and it lifts off along your pass. A faster pass lifts more.
+- Every so often a gust carries a few settled leaves away.
+- Colour follows the date, from yellow-green in September to red and brown by December.
+
+Winter is unchanged. Switching season clears what has settled. In-app updates are turned off in Seasons so it does not replace itself with Snowy's releases.
+
 ## Build it yourself
 
 You’ll need **Xcode 16 or later**, its Metal toolchain, and a Mac.

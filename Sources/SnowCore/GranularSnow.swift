@@ -123,6 +123,20 @@ public final class GranularSnow {
         revision &+= 1
     }
 
+    /// Offers every occupied cell to `take` and empties the ones it accepts. Fall turns
+    /// displaced material into airborne leaves instead of letting it flow as a mass.
+    public func drain(_ take: (SIMD2<Float>, Float) -> Bool) {
+        guard !active.isEmpty else { return }
+        var changed = false
+        for index in active where mass[index] > 0 {
+            if take(position(of: index), mass[index]) { mass[index] = 0; changed = true }
+        }
+        guard changed else { return }
+        compact()
+        searchOrigin = nil
+        revision &+= 1
+    }
+
     /// Rasterize the rounded union with two updates per body/row and a single row-prefix pass.
     /// Cost is bounded by grid size plus summed body heights, not bodyCount * screenArea.
     public func setBodies(_ input: [SolidBody]) {

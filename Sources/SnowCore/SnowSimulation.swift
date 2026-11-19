@@ -16,7 +16,22 @@ public final class SnowSimulation {
     public var wind = WindSettings() {
         didSet { if wind != oldValue { cornerWindDirty = true } }
     }
-    public var tool: SnowTool = .glove
+    public var tool: SnowTool = .glove {
+        didSet { if tool == .blower && season != .fall { tool = .glove } }
+    }
+    /// Switching season clears what has settled: snow does not turn into leaves.
+    public var season: Season = .winter {
+        didSet { if season != oldValue { seasonChanged() } }
+    }
+    /// 0 early autumn, 1 late; shifts leaf colour from yellow-green toward red and brown.
+    public var leafAge: Float = 0.5 {
+        didSet { if leafAge != oldValue { meshDirty = true } }
+    }
+    public internal(set) var leaves: [LeafParticle] = []
+    public internal(set) var blownLeaves: [LeafParticle] = []
+    /// Resting leaves, rebuilt with the mesh. Elevated (Spotlight) caps come first.
+    public internal(set) var pileLeaves: [LeafInstance] = []
+    public internal(set) var elevatedPileLeafCount = 0
 
     // Shared only by SnowCore implementation extensions; none of this state is public.
     var random: RandomSource
@@ -58,6 +73,15 @@ public final class SnowSimulation {
             + carriedContacts.reduce(0) { $0 + $1.mass }
     }
     var cornerWindDirty = true
+    var pointerVelocity = SIMD2<Float>.zero
+    var blowCarry: Float = 0
+    var pileScratch: [SIMD2<Float>] = []
+    var looseCarry: Float = 0
+    var gustClock: Float = 14
+    var gustRemaining: Float = 0
+    var gustDuration: Float = 1
+    var gustDirection: Float = 1
+    var gustWind: Float = 0
     /// Simulated seconds left in a thaw; zero when none is running.
     public internal(set) var thawRemaining: Float = 0
 
@@ -74,6 +98,9 @@ public final class SnowSimulation {
         buckets = Array(repeating: [], count: max(1, Int(ceil(width / bucketWidth))))
         bodyBuckets = Array(repeating: [], count: buckets.count)
         flakes.reserveCapacity(budget.flakes)
+        leaves.reserveCapacity(budget.fallingLeaves)
+        blownLeaves.reserveCapacity(budget.blownLeaves)
+        pileLeaves.reserveCapacity(budget.pileLeaves)
         mesh.reserveCapacity(budget.maximumSnowVertices)
         elevatedMeshRanges.reserveCapacity(budget.surfaces)
         supportTransfers.reserveCapacity(budget.cells)
@@ -94,6 +121,9 @@ public final class SnowSimulation {
         snowReleases.removeAll(keepingCapacity: true)
         carriedContacts.removeAll(keepingCapacity: true)
         releaseScratch.removeAll(keepingCapacity: true)
+        blownLeaves.removeAll(keepingCapacity: true)
+        blowCarry = 0
+        looseCarry = 0
         meshDirty = true
         resetPointer()
         if !batchingScene { rebuildMesh() }
@@ -140,7 +170,10 @@ public final class SnowSimulation {
         geometryAge += dt
         settleAge += dt
         if let cursor, cursor.x.isFinite, cursor.y.isFinite {
-            if tool == .shovel {
+            pointerVelocity = rawDT < 0.2 ? (previousCursor.map { (cursor - $0) / dt } ?? .zero) : .zero
+            if tool == .blower {
+                if rawDT < 0.2, let previousCursor { blow(from: previousCursor, to: cursor, dt: dt) }
+            } else if tool == .shovel {
                 sweep(from: rawDT < 0.2 ? (previousCursor ?? cursor) : cursor, to: cursor, dt: dt)
             } else if rawDT < 0.2, let previousCursor {
                 let delta = cursor - previousCursor
@@ -149,17 +182,21 @@ public final class SnowSimulation {
                 }
             }
             previousCursor = cursor
-        } else { previousCursor = nil }
+        } else { previousCursor = nil; pointerVelocity = .zero }
 
         // New snowfall waits for a thaw to finish; flakes keep falling and recycling.
         if isThawing { advanceThaw(dt: dt) }
-        else { for drift in drifts { drift.accumulate(dt: dt, intensity: snowfall.density) } }
+        else {
+            // Leaves that land build the pile too, so the unseen share is smaller than snow's.
+            let intensity = snowfall.density * (season == .fall ? 0.35 : 1)
+            for drift in drifts { drift.accumulate(dt: dt, intensity: intensity) }
+        }
         if settleAge >= 0.1 {
             for drift in drifts { drift.settle() }
             settleAge = 0
             meshDirty = true
         }
-        let desired = reducedMotion ? 0 : min(budget.flakes,
+        let desired = reducedMotion || season == .fall ? 0 : min(budget.flakes,
             Int(Float(budget.flakes) * min(1, snowfall.density / Snowfall.flurry.density) * max(0, min(1, particleScale))))
         if flakes.count > desired { flakes.removeLast(flakes.count - desired) }
         while flakes.count < desired { flakes.append(newFlake(scattered: true)) }
@@ -181,12 +218,18 @@ public final class SnowSimulation {
             if particle.position.x > size.x + 8 { particle.position.x = -4 }
             flakes[i] = particle
         }
+        // Swept or ploughed leaves take to the air before the granular field can move them.
+        if season == .fall { liftLooseLeaves() }
         let looseRevision = looseSnow.revision
         looseSnow.step(dt: dt, wind: self.wind.velocity) { [unowned self] from, to, mass in
             self.landGranularSnow(from: from, to: to, mass: mass)
         }
         if tool == .shovel, let cursor {
             sweep(from: cursor, to: cursor, dt: dt)
+        }
+        if season == .fall {
+            liftLooseLeaves()
+            stepLeaves(dt: dt, ambient: wind)
         }
         if looseRevision != looseSnow.revision { meshDirty = true; interactionDirty = true }
         if meshDirty && (geometryAge >= 0.1 || interactionDirty) { rebuildMesh() }

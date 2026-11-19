@@ -41,6 +41,15 @@ final class DesktopCoordinator {
             onStateChange?()
         }
     }
+    /// What the user picked in the Season menu; nil follows the calendar.
+    var seasonChoice: Season? {
+        didSet {
+            UserDefaults.standard.set(seasonChoice?.rawValue ?? "Calendar", forKey: "season")
+            refreshSeason()
+        }
+    }
+    private(set) var season: Season = .winter
+    private var leafAge: Float = 0.5
     private let context: MetalContext
     private let tracker = WindowTracker()
     private var displays: [Display] = []
@@ -96,9 +105,31 @@ final class DesktopCoordinator {
         wind = WindSettings(vector: SIMD2(UserDefaults.standard.float(forKey: "windX"),
                                          UserDefaults.standard.float(forKey: "windY")))
         tool = SnowTool(rawValue: UserDefaults.standard.string(forKey: "cursorTool") ?? "") ?? .glove
+        seasonChoice = Season(rawValue: UserDefaults.standard.string(forKey: "season") ?? "")
+        (season, leafAge) = Self.readSeason(choice: seasonChoice)
+        if season != .fall, tool == .blower { tool = .glove }
         policy = Self.readPolicy()
         installObservers()
         configureDisplays()
+    }
+
+    private static func readSeason(choice: Season?) -> (Season, Float) {
+        let today = Calendar.current.dateComponents([.month, .day], from: Date())
+        let month = today.month ?? 1, day = today.day ?? 1
+        return (choice ?? Season.current(month: month, day: day), Season.fallProgress(month: month, day: day))
+    }
+
+    /// Applies the picked season, or the calendar's when none is picked. Safe to call often:
+    /// nothing is cleared unless the season really changes.
+    func refreshSeason() {
+        let previous = season
+        (season, leafAge) = Self.readSeason(choice: seasonChoice)
+        if season != .fall, tool == .blower { tool = .glove }
+        for display in displays {
+            display.renderer.simulation.season = season
+            display.renderer.simulation.leafAge = leafAge
+        }
+        if season != previous { onStateChange?() }
     }
 
     func clear() {
@@ -268,6 +299,8 @@ final class DesktopCoordinator {
                                               surfaces: Int(48 * share))
                 let renderer = try MetalRenderer(context: context, size: frame.size, menuInset: geometry.menuInset,
                                                  budget: budget, seed: UInt64(geometry.id))
+                renderer.simulation.season = season
+                renderer.simulation.leafAge = leafAge
                 renderer.simulation.snowfall = snowfall
                 renderer.simulation.wind = wind
                 renderer.simulation.tool = tool

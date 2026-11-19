@@ -89,22 +89,32 @@ func icon(_ c: CGContext, size: CGFloat) {
     let box = CGRect(x: 118, y: 100, width: 788, height: 788)
     let shape = CGPath(roundedRect: box, cornerWidth: 198, cornerHeight: 198, transform: nil)
     c.saveGState(); c.setShadow(offset: CGSize(width: 0, height: 29), blur: 40, color: color(0x071c38, 0.38))
-    c.setFillColor(color(0x1b68ad)); c.addPath(shape); c.fillPath(); c.restoreGState()
+    c.setFillColor(color(0x8a4a22)); c.addPath(shape); c.fillPath(); c.restoreGState()
     c.saveGState(); c.addPath(shape); c.clip()
-    c.drawLinearGradient(gradient([color(0xc9f2ff), color(0x77c1ee), color(0x459fdc), color(0x165ca3)], [0, 0.45, 0.51, 1]),
-                         start: CGPoint(x: 512, y: 100), end: CGPoint(x: 512, y: 888), options: [])
-    c.setFillColor(color(0xffffff, 0.38)); c.move(to: CGPoint(x: 140, y: 377))
+    // Winter blue in one corner, autumn orange in the other: the app covers both.
+    c.drawLinearGradient(gradient([color(0x9bdcfb), color(0x4a9fe0), color(0xf4a63c), color(0xd6501a)], [0, 0.40, 0.60, 1]),
+                         start: CGPoint(x: 150, y: 130), end: CGPoint(x: 874, y: 858), options: [])
+    c.setFillColor(color(0xffffff, 0.30)); c.move(to: CGPoint(x: 140, y: 377))
     c.addQuadCurve(to: CGPoint(x: 884, y: 377), control: CGPoint(x: 512, y: 130))
     c.addLine(to: CGPoint(x: 884, y: 108)); c.addLine(to: CGPoint(x: 140, y: 108)); c.closePath(); c.fillPath()
     c.restoreGState()
-    c.addPath(shape); c.setStrokeColor(color(0x226ea8, 0.84)); c.setLineWidth(10); c.strokePath()
-    c.setStrokeColor(color(0xffffff)); c.setLineWidth(38); c.setLineCap(.round); c.setLineJoin(.round)
-    for ray in 0..<6 {
-        c.saveGState(); c.translateBy(x: 512, y: 497); c.rotate(by: CGFloat(ray) * .pi / 3)
-        c.move(to: .zero); c.addLine(to: CGPoint(x: 0, y: -265))
-        c.move(to: CGPoint(x: -84, y: -221)); c.addLine(to: CGPoint(x: 0, y: -145))
-        c.addLine(to: CGPoint(x: 84, y: -221)); c.strokePath(); c.restoreGState()
+    c.addPath(shape); c.setStrokeColor(color(0x3a2a22, 0.40)); c.setLineWidth(10); c.strokePath()
+    // A single leaf, tilted as if falling.
+    c.saveGState(); c.translateBy(x: 512, y: 480); c.rotate(by: .pi / 5)
+    c.setLineCap(.round); c.setLineJoin(.round)
+    c.setStrokeColor(color(0xffffff)); c.setLineWidth(40)
+    c.move(to: CGPoint(x: 0, y: 170)); c.addLine(to: CGPoint(x: 0, y: 318)); c.strokePath()
+    c.setFillColor(color(0xffffff)); c.move(to: CGPoint(x: 0, y: -290))
+    c.addCurve(to: CGPoint(x: 0, y: 215), control1: CGPoint(x: 265, y: -175), control2: CGPoint(x: 240, y: 135))
+    c.addCurve(to: CGPoint(x: 0, y: -290), control1: CGPoint(x: -240, y: 135), control2: CGPoint(x: -265, y: -175))
+    c.fillPath()
+    c.setStrokeColor(color(0xe2742a)); c.setLineWidth(24)
+    c.move(to: CGPoint(x: 0, y: -165)); c.addLine(to: CGPoint(x: 0, y: 175))
+    for y in [CGFloat(-35), 80] {
+        c.move(to: CGPoint(x: 0, y: y)); c.addLine(to: CGPoint(x: 112, y: y - 96))
+        c.move(to: CGPoint(x: 0, y: y)); c.addLine(to: CGPoint(x: -112, y: y - 96))
     }
+    c.strokePath(); c.restoreGState()
 }
 let arguments = CommandLine.arguments
 if arguments.count != 3 { fatalError("Usage: render-install-art.swift background|icon output-directory") }

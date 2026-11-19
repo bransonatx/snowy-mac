@@ -8,6 +8,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSM
     private let pauseItem = NSMenuItem(title: "Pause Snow", action: #selector(togglePause), keyEquivalent: "p")
     private let stateItem = NSMenuItem(title: "", action: nil, keyEquivalent: "")
     private let thawItem = NSMenuItem(title: "Thaw Settled Snow", action: #selector(thawSnow), keyEquivalent: "t")
+    private let clearItem = NSMenuItem(title: "Clear Settled Snow", action: #selector(clearSnow), keyEquivalent: "k")
+    private var seasonItems: [NSMenuItem] = []
     private var weatherItems: [NSMenuItem] = []
     private var windPopover: NSPopover?
     private var toolItems: [NSMenuItem] = []
@@ -28,7 +30,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSM
         updater.start()
 
         let timer = Timer(timeInterval: 1800, repeats: true) { [weak self] _ in
-            MainActor.assumeIsolated { self?.updater.probeForUpdates() }
+            MainActor.assumeIsolated {
+                self?.updater.probeForUpdates()
+                // The calendar may have crossed into a new season while the app stayed open.
+                self?.coordinator?.refreshSeason()
+            }
         }
         RunLoop.main.add(timer, forMode: .common)
         updateCheckTimer = timer
@@ -84,9 +90,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSM
 
     private func buildMenu() {
         let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
-        item.button?.image = NSImage(systemSymbolName: "snowflake", accessibilityDescription: "Snowy")
+        item.button?.image = NSImage(systemSymbolName: "snowflake", accessibilityDescription: "Seasons")
         item.button?.image?.isTemplate = true
-        item.button?.toolTip = "Snowy — desktop snowfall"
+        item.button?.toolTip = "Seasons — desktop snowfall"
         statusItem = item
         let menu = NSMenu()
         menu.autoenablesItems = false
@@ -95,27 +101,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSM
         support.target = self
         menu.addItem(support)
         menu.addItem(.separator())
-        let title = NSMenuItem(title: "Snowy", action: nil, keyEquivalent: "")
+        let title = NSMenuItem(title: "Seasons", action: nil, keyEquivalent: "")
         title.isEnabled = false
         menu.addItem(title)
         stateItem.isEnabled = false
         menu.addItem(stateItem)
         menu.addItem(.separator())
-        let open = NSMenuItem(title: "Open Snowy…", action: #selector(openSnowyWindow), keyEquivalent: "")
+        let open = NSMenuItem(title: "Open Seasons…", action: #selector(openSnowyWindow), keyEquivalent: "")
         open.target = self
         menu.addItem(open)
         menu.addItem(.separator())
         pauseItem.target = self
         menu.addItem(pauseItem)
-        let clear = NSMenuItem(title: "Clear Settled Snow", action: #selector(clearSnow), keyEquivalent: "k")
-        clear.target = self
-        menu.addItem(clear)
+        clearItem.target = self
+        menu.addItem(clearItem)
         thawItem.target = self
         menu.addItem(thawItem)
         let tool = NSMenuItem(title: "Cursor Tool", action: nil, keyEquivalent: "")
         let tools = NSMenu(title: "Cursor Tool")
         tools.autoenablesItems = false
-        for (index, name) in ["Glove", "Shovel"].enumerated() {
+        for (index, name) in ["Glove", "Shovel", "Leaf Blower"].enumerated() {
             let option = NSMenuItem(title: name, action: #selector(selectTool(_:)), keyEquivalent: "")
             option.tag = index
             option.target = self
@@ -124,6 +129,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSM
         }
         tool.submenu = tools
         menu.addItem(tool)
+        let season = NSMenuItem(title: "Season", action: nil, keyEquivalent: "")
+        let seasons = NSMenu(title: "Season")
+        seasons.autoenablesItems = false
+        for (index, name) in (["Follow the Calendar"] + Season.allCases.map(\.rawValue)).enumerated() {
+            let option = NSMenuItem(title: name, action: #selector(selectSeason(_:)), keyEquivalent: "")
+            option.tag = index
+            option.target = self
+            seasons.addItem(option)
+            seasonItems.append(option)
+            if index == 0 { seasons.addItem(.separator()) }
+        }
+        season.submenu = seasons
+        menu.addItem(season)
         menu.addItem(.separator())
         for (index, snowfall) in Snowfall.allCases.enumerated() {
             let option = NSMenuItem(title: snowfall.rawValue, action: #selector(setSnowfall(_:)), keyEquivalent: "")
@@ -140,7 +158,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSM
         updateItem.isHidden = true
         updateItem.isEnabled = false
         menu.addItem(updateItem)
-        let quit = NSMenuItem(title: "Quit Snowy", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
+        let quit = NSMenuItem(title: "Quit Seasons", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q")
         menu.addItem(quit)
         item.menu = menu
     }
@@ -198,6 +216,40 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSM
 
     private func updateMenu() {
         guard let coordinator else { return }
+        let fall = coordinator.season == .fall
+        if let button = statusItem?.button {
+            button.image = NSImage(systemSymbolName: fall ? "leaf.fill" : "snowflake", accessibilityDescription: "Seasons")
+            button.image?.isTemplate = true
+            button.toolTip = fall ? "Seasons — falling leaves" : "Seasons — desktop snowfall"
+        }
+        for (index, item) in seasonItems.enumerated() {
+            item.state = (index == 0 ? coordinator.seasonChoice == nil
+                          : coordinator.seasonChoice == Season.allCases[index - 1]) ? .on : .off
+        }
+        if toolItems.count == 3 {
+            toolItems[1].title = fall ? "Rake" : "Shovel"
+            toolItems[2].isHidden = !fall
+            toolItems[2].state = coordinator.tool == .blower ? .on : .off
+        }
+        clearItem.title = fall ? "Clear Fallen Leaves" : "Clear Settled Snow"
+        thawItem.title = fall ? "Let Leaves Blow Away" : "Thaw Settled Snow"
+        guard !fall else {
+            pauseItem.title = coordinator.paused ? "Resume Leaves" : "Pause Leaves"
+            thawItem.isEnabled = coordinator.canThaw
+            if coordinator.failed { stateItem.title = "Rendering stopped — relaunch to retry" }
+            else if coordinator.policy.suspended { stateItem.title = "Resting while your Mac cools down" }
+            else if coordinator.paused { stateItem.title = "Leaves are paused" }
+            else if coordinator.policy.reducedMotion { stateItem.title = "Quiet piles · Reduce Motion" }
+            else if coordinator.policy.particleScale < 1 { stateItem.title = "Fewer leaves · saving energy" }
+            else if coordinator.tool == .blower { stateItem.title = "Sweep the pointer past a pile to blow it away" }
+            else { stateItem.title = "Brush a leafy edge to scatter it" }
+            for (index, item) in weatherItems.enumerated() {
+                item.state = Snowfall.allCases[index] == coordinator.snowfall ? .on : .off
+            }
+            toolItems.first?.state = coordinator.tool == .glove ? .on : .off
+            if toolItems.count > 1 { toolItems[1].state = coordinator.tool == .shovel ? .on : .off }
+            return
+        }
         pauseItem.title = coordinator.paused ? "Resume Snow" : "Pause Snow"
         // A thaw melts on the running snow clock, so it is unavailable while that is stopped.
         thawItem.isEnabled = coordinator.canThaw
@@ -210,7 +262,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSM
         for (index, item) in weatherItems.enumerated() {
             item.state = Snowfall.allCases[index] == coordinator.snowfall ? .on : .off
         }
-        for (index, item) in toolItems.enumerated() {
+        for (index, item) in toolItems.prefix(2).enumerated() {
             item.state = (index == 1 ? coordinator.tool == .shovel : coordinator.tool == .glove) ? .on : .off
         }
     }
@@ -245,7 +297,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSM
     }
 
     @objc private func selectTool(_ sender: NSMenuItem) {
-        coordinator?.tool = sender.tag == 1 ? .shovel : .glove
+        coordinator?.tool = sender.tag == 2 ? .blower : (sender.tag == 1 ? .shovel : .glove)
+    }
+    @objc private func selectSeason(_ sender: NSMenuItem) {
+        coordinator?.seasonChoice = Season.allCases.indices.contains(sender.tag - 1) ? Season.allCases[sender.tag - 1] : nil
+        updateMenu()
     }
     @objc private func setSnowfall(_ sender: NSMenuItem) {
         guard Snowfall.allCases.indices.contains(sender.tag) else { return }

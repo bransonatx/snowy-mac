@@ -3,7 +3,7 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 struct SceneLibraryDrag {
-    static let contentType = UTType(exportedAs: "app.snowy.desktop.editor-card", conformingTo: .data)
+    static let contentType = UTType(exportedAs: "app.seasons.desktop.editor-card", conformingTo: .data)
 
     let assetID: String
     let id = UUID()
@@ -151,7 +151,7 @@ struct SceneEditor: View {
                     settings.includesDesktopIcons = true
                     DesktopIconGeometry.requestAccess()
                 }
-                .help("Allow Snowy in Privacy & Security → Accessibility to use Finder icon edges")
+                .help("Allow Seasons in Privacy & Security → Accessibility to use Finder icon edges")
             }
             if let desktop, settings.layout != .none {
                 Button("Load Preset") {
